@@ -5,9 +5,13 @@
 
 Prototype: `prototype/<feature>.html` (mở double-click). Ảnh: `review-screens/`.
 Vòng hiện tại: <n> · <ngày>.
+Renderer component thật: <file/lệnh, package/export/variant>; provenance/hash nguồn: <file>.
+Tham số token: <JSON/MD, snapshot, allowlist light/dark, cách export/import/reset>.
+Người điều phối chạy renderer/chụp ảnh và viết REVIEW.md Rn; agent design ghi “Ảnh: 0 — điều phối chụp”.
 
 ## Quyết định của người phụ trách sản phẩm · <ngày>
 - <đóng Q-x: …>
+- Token proposal được duyệt: <file MD/JSON @ hash>; task nạp lại DS và nơi dùng chung cần kiểm: <…>.
 
 ## Vòng n · đã sửa gì
 | Mục | Trước | Sau |

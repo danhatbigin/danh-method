@@ -17,7 +17,7 @@ Không chia khi: các mục chạm cùng vùng code (sửa theo review → một
 
 | Subagent | Làm | Không làm | Ghi được |
 |---|---|---|---|
-| `design-prototyper` | Prototype HTML + ảnh + DESIGN-NOTES | Code app, commit | `features/<f>/prototype`, `review-screens`, `DESIGN-NOTES.md` |
+| `design-prototyper` | Renderer component thật + token controls MD/JSON + provenance + DESIGN-NOTES | Code app, commit, chụp ảnh | `features/<f>/prototype`, `DESIGN-NOTES.md` |
 | `logic-implementer` | Schema, quyền, service, view model, test | UI mới | Worktree logic |
 | `ui-implementer` | Giao diện theo preview đã duyệt | Đổi logic/quyền, đổi token | Worktree UI (hoặc cùng worktree sau khi logic xong) |
 | `code-reviewer` | Đọc diff, tìm lỗi, báo cáo có mã | **Sửa code, checkout, commit, merge** | Chỉ file báo cáo review |
@@ -75,3 +75,7 @@ Tích hợp → merge-tree mọi nhánh song song → verify + AC → Stage 6 �
 - Tiếp quản: chỉ một writer/worktree; verifier chỉ đọc. Chia subagent theo việc có chồng file hay không, không theo số finding. Agent thi hành không tự mở subagent.
 - Điều phối dùng model mạnh, tác vụ hẹp dùng model rẻ đã có; một tác vụ nặng tại một thời điểm. Nhiều agent độc lập dùng TEAM-BOARD ở `references/coordination-templates.md`.
 - Hết quota bàn giao vai điều phối bằng B1, commit/push phần đã được kiểm, giữ base/ngân sách, liệt kê tài nguyên và bước tiếp.
+
+## 9. Điều phối preview và vòng duyệt token (D1/D2 chốt 29/10)
+
+Người điều phối chạy renderer component thật, kiểm hash nguồn/CSS/token; gắn bảng thông số nếu cần, chạy test prototype rồi chụp ảnh 1440/768/390 × light/dark và viết REVIEW R1…Rn. Agent design không chụp ảnh, không viết REVIEW thay điều phối. Đưa bản token MD/JSON xuất từ preview để người phụ trách duyệt; giao task cập nhật DS riêng sau duyệt, dựng lại token page/component preview và kiểm nơi dùng chung. Không dùng HTML dựng tay giả component thật.

@@ -27,11 +27,11 @@ Thư mục thêm: `research/` (khảo sát cách làm việc gốc, 22/10/2026),
 | `project-setup` | Dự án mới, junior mới: repo spec, operator profile, project config, verify-kit |
 | `design-tokens` | Stage 2: chốt token, render trang HTML token (AA, light/dark), gate G0; dùng ui-ux-pro-max |
 | `feature-spec` | Stage 1–3: PRD / USER_FLOW / GUIDANCE / TASKS, quyết định + Q, 3 bước, 6×6 |
-| `design-prototype` | Stage 4: preview HTML + dev bar + ảnh 1440/768/390 sáng/tối + DESIGN-NOTES |
+| `design-prototype` | Component thật + token controls MD/JSON + provenance; điều phối chụp ảnh và REVIEW |
 | `design-review` | Stage 5–6: audit UX, nghiệm thu trên DB bản sao, ACCEPTANCE trung thực |
-| `prompt-contract` | Prompt hợp đồng: design / logic / UI / acceptance / fix / resume, HANDOFF |
-| `execute-tasks` | Thi hành 1 task hoặc batch: TDD, verify theo tier, git an toàn, báo cáo |
-| `subagent-orchestration` | Agent chính điều phối subagent theo bề mặt, reviewer chỉ đọc |
+| `prompt-contract` | Hợp đồng + delta/hai lượt A/B, takeover, điều kiện kết thúc và HANDOFF |
+| `execute-tasks` | TDD/verify, phân loại FAIL, base tiếp quản, PR timeout, git/demo an toàn |
+| `subagent-orchestration` | Bắt tay logic–UI theo pushed hash/C0/glob, một writer, TEAM-BOARD |
 | `review-report` | Truy nguyên theo cơ chế, review diff, bảng issue → nguyên nhân → kết quả → giải pháp |
 
 ## Subagents
@@ -52,4 +52,12 @@ Thư mục thêm: `research/` (khảo sát cách làm việc gốc, 22/10/2026),
 
 - Nội dung skill viết tiếng Việt; mô tả skill tiếng Anh để agent nhận diện tốt.
 - Stack trung lập; MiVida chỉ là ví dụ. Luật riêng của từng dự án (No Border, font, cổng…) đặt trong `process/project.md` của dự án đó.
-- Phiên bản 0.2.0 · 29/10/2026 (thêm `design-tokens`, cơ chế xin phép cài ui-ux-pro-max).
+- Phiên bản 0.3.0 · 29/10/2026. D1: điều phối tạo ảnh/REVIEW. D2: prototype render component thật, chỉnh và xuất/nạp token MD/JSON. D4: bộ công cụ thiết kế/thi hành dùng Superpowers và UI UX Pro Max.
+
+## Thay đổi v0.3.0
+
+- Nguồn sự thật tách dữ kiện/quyết định; FAIL có phân loại và ngân sách truy vết; tiếp quản giữ base; PR timeout riêng, G3 sau Stage 6 và đủ gate.
+- Logic ‖ UI bắt tay theo từng task pushed, C0 chống API trùng, glob sở hữu rõ; mẫu B1–B11 cho tiếp quản, review, status, TEAM-BOARD, nghiệm thu và dữ liệu mẫu.
+- Prototype bắt buộc từ component thật. Helper `skills/design-prototype/scripts/attach-token-editor.mjs` gắn bảng chỉnh token, xuất/nạp JSON hoặc MD và kiểm source hashes; renderer component thật theo runtime của từng project. Helper không render component và không ghi token nguồn. Hướng dẫn: `skills/design-prototype/references/component-rendering.md`.
+- Người điều phối tạo ảnh/REVIEW theo vòng. Token export chờ duyệt trước task nạp lại DS. Bảng token cũ dùng để duyệt token, không thay thế preview component thật.
+- Kiểm script: `node --test tests/*.test.mjs`. Chỉ có công cụ dùng sẵn; plugin không tự cài CLI/dependency.

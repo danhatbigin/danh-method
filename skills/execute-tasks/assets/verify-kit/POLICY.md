@@ -64,6 +64,10 @@ Guard không còn cơ chế bỏ qua bằng chuỗi tuỳ ý (`!fulltest`, `VERI
 
 Nhiều repo ghi "typecheck + test + build phải xanh trước mỗi commit". Với tier 0 và 1, file này thay phần test/build đó bằng `node .verify/verify.mjs`; build dồn vào `--batch`/`--pr`. Các quy tắc khác của repo (nhánh, log, handoff, commit nhỏ) giữ nguyên.
 
+## Vai điều phối preview (D1/D2 chốt 29/10/2026)
+
+Khi được giao workflow preview, người điều phối chạy renderer component thật và test script prototype, gắn bảng chỉnh token, chụp ảnh 1440/768/390 × light/dark bằng browser/CDP hoặc Playwright đã có, rồi viết REVIEW.md theo vòng. Đây là phạm vi kiểm thiết kế riêng, không cấp quyền chạy full suite/e2e sản phẩm hay tự cấp grant. Agent design chuẩn bị renderer/prototype/provenance/parameters và DESIGN-NOTES, không chạy Playwright/chụp ảnh. Agent code vẫn theo verify tier; nghiệm thu browser có phạm vi DB/cổng riêng. Không cài công cụ mới để thực hiện workflow khi chưa được phép.
+
 ## FAIL và tiếp quản (A5.1–A5.4)
 
 | Loại FAIL | Xử lý | Tính lượt code |

@@ -1,8 +1,8 @@
 {
   "name": "danh-method",
   "owner": { "name": "Danh Nguyen", "email": "danh.nguyen@bigin.vn" },
-  "metadata": { "description": "Danh Method — designer-led workflow to solo-build products with AI agents.", "version": "0.2.0" },
+  "metadata": { "description": "Danh Method — designer-led workflow to solo-build products with AI agents.", "version": "0.3.0" },
   "plugins": [
-    { "name": "danh-method", "source": "./", "description": "Spec first, token page, HTML preview gate, contract prompts, subagents, honest verification.", "version": "0.2.0", "category": "design" }
+    { "name": "danh-method", "source": "./", "description": "Spec first, token page, HTML preview gate, contract prompts, subagents, honest verification.", "version": "0.3.0", "category": "design" }
   ]
 }

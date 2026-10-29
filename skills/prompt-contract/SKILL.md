@@ -31,7 +31,7 @@ Tách design / logic / UI để chạy song song và để mỗi agent có vùng
 6. **Phạm vi**: Làm / Không làm (dẫn mục "Ngoài phạm vi" của PRD) / Chỉ sửa tối thiểu.
 7. **Thứ tự task**: "không nhảy cóc"; batch hay một task.
 8. **Cách làm mỗi task**: đọc → grep callers → test đỏ trước → code nhỏ nhất → verify theo tier → tick TASKS (+1 dòng kết quả có ngày) → CHANGELOG → HANDOFF + log ngày → commit → báo 3–5 dòng → sang task tiếp.
-9. **Quy tắc cứng**: git an toàn, không dữ liệu mẫu trong code, không tên người trong repo code, không đụng cổng/DB demo, UTF-8 LF, công cụ cấm (Superdesign, ponytail cho design).
+9. **Quy tắc cứng**: git an toàn, không dữ liệu mẫu trong code, không tên người trong repo code, không đụng cổng/DB demo, UTF-8 LF, công cụ: Superpowers và UI UX Pro Max.
 10. **Điều kiện dừng** (viết sẵn, ngoài các điều này thì **không dừng hỏi**): việc không đảo ngược được; ngoài phạm vi PRD; ảnh hưởng dữ liệu/quyền mà PRD không trả lời; FAIL phân loại theo `execute-tasks/references/failure-taxonomy.md`; lỗi code còn FAIL sau ngân sách đã cấp; sắp hết hạn mức (→ typecheck xanh, cập nhật HANDOFF, commit rồi mới dừng).
 11. **Bàn giao**: file log/HANDOFF cập nhật gì; PR draft; báo cáo mấy dòng gồm những gì; dòng `verify:` nguyên văn; mục Bỏ qua + Rủi ro.
 12. **Mẫu HANDOFF** (`references/handoff-template.md`) và **lệnh resume ngắn** ở cuối.

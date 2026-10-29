@@ -50,3 +50,7 @@ UI cần: <C0 + bằng chứng>; không tự tạo API trùng.
 Tích hợp: logic chịu db/mock-data, UI chịu apps/ui theo glob; kiểm hunk, không chọn mù ours/theirs.
 Một writer/worktree khi tiếp quản; không tự mở subagent; không kill PID lạ.
 ```
+
+## Phân vai design/điều phối (D1/D2)
+
+Design chỉ ghi renderer/prototype/DESIGN-NOTES; giao component thật + CSS đã compile + provenance/hash + token allowlist light/dark + test script. Có controls chỉnh thông số và export/import MD/JSON. Điều phối chạy renderer/test, chụp ảnh, viết REVIEW Rn; token export chờ duyệt trước task nạp lại DS. Không xem HTML mô phỏng là render component thật.

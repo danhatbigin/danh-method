@@ -2,7 +2,7 @@
   "extends": "node",
   "rulesBefore": [
     { "name": "local-noise", "kind": "skip", "skip": true, "tier": 0,
-      "match": ["**/*.log", ".mock-db/**", ".turbo/**", ".superpowers/**", ".superdesign/**", ".agents/**", ".claude/**", ".codex/**", "tools/**"] },
+      "match": ["**/*.log", ".mock-db/**", ".turbo/**", ".superpowers/**", ".agents/**", ".claude/**", ".codex/**", "tools/**"] },
     { "name": "mock-data", "kind": "logic", "tier": 2, "match": ["packages/mock-data/**"] }
   ],
   "tiers": {

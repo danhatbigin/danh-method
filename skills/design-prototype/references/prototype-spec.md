@@ -4,14 +4,17 @@
 
 ```
 features/<feature>/prototype/
-├── <feature>.html     # khung + markup
-├── <feature>.css      # chỉ dùng biến token (copy giá trị từ file token thật vào :root, ghi nguồn)
-├── <feature>.js       # dữ liệu hư cấu + state + render
+├── <feature>.html     # xuất từ component thật, có bảng chỉnh token
+├── <feature>.css      # CSS đã compile từ DS thật + token snapshot có nguồn
+├── <feature>.js       # bundle tương tác component thật + state/dữ liệu hư cấu
+├── render-preview.*   # gọi runtime/compiler component thật
+├── provenance.json    # component/token/CSS/renderer và source hashes
+├── token-parameters.json # allowlist token light/dark; import/export MD/JSON
 └── <feature>.test.mjs # bắt buộc: self-check mọi trạng thái, E/T, CTA, 6×6
 ```
 
 - UTF-8, LF. Trên Windows không ghi bằng PowerShell `Set-Content`/`Add-Content`.
-- Không framework nặng; vanilla JS hoặc một thư viện CDN cố định phiên bản nếu thật cần.
+- Dùng runtime/compiler và phiên bản dependency đã có trong project. Bundle local để preview mở offline; không thay component bằng HTML/JS mô phỏng. SSR chỉ xuất markup không chứng minh tương tác: cần bundle client thật hoặc ghi rõ giới hạn chưa kiểm.
 - Chữ trên UI theo ngôn ngữ UI của project (thường English).
 
 ## Dev bar (bắt buộc, gập được, nằm ngoài khung sản phẩm)
@@ -24,6 +27,7 @@ features/<feature>/prototype/
 | Viewport | desktop / tablet / mobile (giả lập khung 1440/768/390) |
 | State | Ready / Empty / Loading / No access / Error |
 | Proposals | mặc định **tắt**; bật mới thấy đề xuất ngoài scope |
+| Token parameters | chỉnh token allowlist theo light/dark; export JSON/MD, import lại cùng nguồn; reset snapshot |
 
 Controls của dev bar chỉ phục vụ review, ghi rõ "không đưa vào app".
 
@@ -46,7 +50,7 @@ Hỗ trợ query string để mở thẳng một trạng thái, ví dụ `?role=
 
 ## Ảnh review
 
-Chạy `node <plugin>/skills/design-prototype/scripts/capture-screens.mjs <html> <out-dir> --states "<query1>,<query2>"`. Script chụp 1440/768/390 × light/dark, báo tràn ngang (`scrollWidth > innerWidth`). Đặt tên `<mã màn>-<viewport>-<theme>.png`.
+Người điều phối chạy `node <plugin>/skills/design-prototype/scripts/capture-screens.mjs <html> <out-dir> --states "<query1>,<query2>"`. Script chụp 1440/768/390 × light/dark, báo tràn ngang (`scrollWidth > innerWidth`). Đặt tên `<mã màn>-<viewport>-<theme>.png`.
 
 Không bật dev server của app, không đụng cổng demo.
 
@@ -55,3 +59,7 @@ Không bật dev server của app, không đụng cổng demo.
 Giao `<feature>.test.mjs` cùng prototype. Kiểm mọi trạng thái/role/drawer: ≤1 nút filled, không lặp hành động, 6×6, E/T đếm riêng theo thao tác thực tế. Tính cả bước mở lý do khi Return; ngoại lệ 4 bước gắn quyết định PRD.
 
 Script chạy bằng Node thuần khi có thể; nếu cần browser thì ghi lệnh/công cụ và để người điều phối chạy trong quyền đã giao. Agent design không tự chạy kiểm nặng ngoài POLICY. Kết quả phải nêu trạng thái đã kiểm, chưa kiểm và số đo, không chỉ kiểm một chuỗi chữ trong source rồi tuyên bố toàn UI đạt.
+
+## Nguồn component và vòng token
+
+Bắt buộc theo `component-rendering.md`: component thật, provenance source hashes, CSS compile, cơ chế chỉnh/xuất/nạp token. Agent design giao đầu vào; điều phối render/chụp/REVIEW. Nạp MD/JSON vào preview chỉ đổi tham số thử; cập nhật DS là task riêng sau duyệt, không sửa tự động file nguồn.

@@ -4,12 +4,12 @@ Mọi biến thể đều có 12 thành phần trong SKILL.md; dưới đây là
 
 ## design
 
-- Vai: agent **design**; dựng prototype HTML tĩnh để duyệt. **Không** viết code app, **không** sửa repo code, **không** commit/push.
+- Vai: agent **design**; chuẩn bị prototype render component thật + token controls và export/import MD/JSON để duyệt; không HTML mô phỏng DS. **Không** viết code app, **không** sửa repo code, **không** commit/push.
 - Đọc trước: PRD + USER_FLOW (nguồn chính) → design-workflow Stage 3–5 → **feature mẫu đã duyệt + ảnh code thật** → token thật (chỉ đọc) → màn hiện tại.
-- Sản phẩm giao: theo skill `design-prototype` §3 (prototype + dev bar, đủ S/D/M, review-screens, DESIGN-NOTES có E/T, câu hỏi, đề xuất ngoài scope sau công tắc Proposals).
+- Sản phẩm giao: theo skill `design-prototype` §3 (renderer component thật + provenance/source hashes + token parameters MD/JSON + dev bar, đủ S/D/M, test script, DESIGN-NOTES; điều phối render/chụp review-screens và viết REVIEW có E/T, câu hỏi, đề xuất ngoài scope sau công tắc Proposals).
 - Quy tắc thiết kế bắt buộc: chép các dòng liên quan từ `design-prototype/references/design-rules.md` + luật riêng project.
-- Cách làm: cấu trúc trước → tự kiểm 3 bước → style bằng token. ui-ux-pro-max nếu cần; không Superdesign; không ponytail.
-- Bàn giao 3–5 dòng: mở file nào, ảnh ở đâu, bao nhiêu E/T đạt 3 bước, câu hỏi, đề xuất ngoài scope.
+- Cách làm: cấu trúc trước → tự kiểm 3 bước → style bằng token. ui-ux-pro-max nếu cần;
+- Bàn giao 3–5 dòng: renderer/preview/provenance/parameters, E/T, câu hỏi, đề xuất; “Ảnh: 0 — điều phối chụp”. Điều phối render, chụp và viết REVIEW từng vòng.
 
 ## logic
 

@@ -39,7 +39,7 @@
 - Không commit `CLAUDE.local.md`, `AGENTS.override.md`, `.env`, dump, `.verify/` (mode local).
 
 ## 5. Công cụ
-- Design: ui-ux-pro-max tra cứu local; giữ design system đã chốt; không Superdesign; không ponytail cho design.
+- Design: ui-ux-pro-max tra cứu local; giữ design system đã chốt; Superpowers giữ kỷ luật thi hành.
 - Kiểm tra: theo `.verify/POLICY.md`; báo nguyên văn dòng `verify: …`.
 
 ## 6. Tài liệu

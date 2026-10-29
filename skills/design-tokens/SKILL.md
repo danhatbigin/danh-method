@@ -58,7 +58,7 @@ node <plugin danh-method>/skills/design-tokens/scripts/render-token-page.mjs \
 Trang tự chứa, mở double-click: cặp nền/chữ kèm **tương phản AA đo thật** (kể cả màu trong suốt), Light / Dark / Side by side, màu còn lại, font, thang chữ, bo góc, khoảng cách, bóng, component mẫu kiểu shadcn, mục **Checks** (cặp dưới AA, màu cứng thiếu bản dark), bảng tất cả token, tìm kiếm, bấm tên để copy `var(--x)`. Chi tiết: `references/token-page-spec.md`.
 
 Sau khi dựng:
-1. Chụp ảnh bằng `design-prototype/scripts/capture-screens.mjs <tokens.html> <repo spec>/design-system/review-screens --states "tokens:"` (1440/768/390 × light/dark).
+1. Người điều phối chụp ảnh bằng `design-prototype/scripts/capture-screens.mjs <tokens.html> <repo spec>/design-system/review-screens --states "tokens:"` nếu Playwright đã có, hoặc browser/CDP được giao (1440/768/390 × light/dark).
 2. Đọc mục Checks. Cặp dưới AA → **không tự sửa token**; ghi vào `design-system/TOKENS-NOTES.md` kèm đề xuất (ví dụ "primary-foreground đổi sang #FAFAF8 → 6.1:1").
 3. Có ui-ux-pro-max và có code: `node "<designSystemSkill>/scripts/validate-tokens.cjs" --dir <src>` để liệt kê màu/khoảng cách viết cứng; đưa kết quả vào TOKENS-NOTES.
 
@@ -82,4 +82,4 @@ Cần chia sẻ cho khách/team mà không gửi file: publish trang (Artifact n
 
 Map radius theo vai card/tile/popover/item, không rải số đo theo màn; xem `references/shadcn-token-map.md`. Snapshot nguồn token (đường dẫn, commit/hash, ngày) lưu cùng TOKENS-NOTES.
 
-Có thể render component thật để tham chiếu số đo/provenance: ghi source hash, component/slot/biến thể, CSS input; nguồn đổi thì render lại. Component mẫu trong trang token không chứng minh đã render TSX thật. Renderer trung tính là tuỳ chọn, không chặn dự án.
+D2 chốt 29/10: prototype **bắt buộc render component thật**, có controls chỉnh thông số, xuất MD/JSON để nạp lại token. Ghi source hash, component/slot/biến thể, CSS input; nguồn đổi render lại. Trang token hiện tại chỉ là bảng token, không phải bằng chứng render TSX thật. Quy trình và helper ở `design-prototype/references/component-rendering.md`. Export từ preview là đề xuất; duyệt xong mới giao task cập nhật token nguồn, dựng lại G0/prototype và kiểm caller dùng chung.

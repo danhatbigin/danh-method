@@ -49,9 +49,9 @@ Dữ kiện: Git/code thật → snapshot prompt → HANDOFF (cache); HEAD lạ 
 - Không custom style ngoài thư viện/token; không tự vẽ chart khi thư viện có; gradient/màu đúng cả light và dark.
 - Đường vào ≤ 3 bước; task ≤ 3 bước (đếm riêng); một hành động chính mỗi điểm quyết định; 6×6; CTA là động từ; nút không có quyền vẫn bấm được và giải thích lý do.
 - Trạng thái không chỉ dựa vào màu; trục trạng thái độc lập hiển thị độc lập; AA ≥ 4.5:1; không tràn ngang ở 1440 / 768 / 390, light + dark.
-- Preview: HTML tĩnh mở double-click, dev bar (role, theme, trang, state, Proposals), dữ liệu hư cấu, ảnh 1440/768/390 × light/dark, DESIGN-NOTES có bảng E/T và câu hỏi.
+- Preview: render từ component thật của DS, bundle offline mở double-click; provenance/hash nguồn + CSS đã compile, dev bar, test script, dữ liệu hư cấu. Có controls chỉnh token light/dark + export/import MD/JSON + reset snapshot. Agent design giao renderer/preview/DESIGN-NOTES; điều phối render, chạy test, chụp 1440/768/390 × light/dark và viết REVIEW Rn. SSR đơn thuần chưa chứng minh tương tác; không HTML mô phỏng component.
 - Token: dựng trang `design-system/tokens.html` bằng `render-token-page.mjs` của plugin danh-method (CSS token → HTML có kiểm AA light/dark) và xin duyệt trước prototype đầu tiên. Prototype chỉ dùng token đã duyệt.
-- Công cụ: ui-ux-pro-max để gợi ý/sinh/soát token và tra cứu UX. Chưa cài thì **hỏi xin phép, nêu lý do** (gợi ý màu/font theo loại sản phẩm, sinh token light/dark, soát màu viết cứng; MIT, chạy local) rồi mới chạy `npm i -g ui-ux-pro-max-cli` + `uipro init --ai <codex|antigravity>`; bị từ chối thì làm thủ công. **Không Superdesign; không ponytail cho design.**
+- Công cụ: ui-ux-pro-max để gợi ý/sinh/soát token và tra cứu UX. Chưa cài thì **hỏi xin phép, nêu lý do** (gợi ý màu/font theo loại sản phẩm, sinh token light/dark, soát màu viết cứng; MIT, chạy local) rồi mới chạy `npm i -g ui-ux-pro-max-cli` + `uipro init --ai <codex|antigravity>`; bị từ chối thì làm thủ công.
 
 ## 7. Review & báo cáo
 
@@ -91,3 +91,7 @@ Dữ kiện: Git/code thật → snapshot prompt → HANDOFF (cache); HEAD lạ 
 - ACCEPTANCE: ĐẠT (test) khác ĐẠT (kiểm lại được); MỘT PHẦN / ĐẠT (có lỗi Bn) / CHƯA ĐẠT / KHÔNG KIỂM ĐƯỢC / KHÔNG CẦN SỬA có bằng chứng. Lỗi B# có mức; bảng tổng mỗi lượt; browser/CDP đang có thay Playwright được. Stage 6 + --pr PASS + AC chứng minh + hết blocker rồi owner review G3; không tự merge.
 - FIXES đối chiếu finding↔PRD, giữ finding bị bác kèm lý do; comment mã quyết định khi đổi expectation. PR: UX → chức năng → code; bảng Review fixes có commit/bằng chứng.
 - Không tự cài công cụ mới. D10 chỉ khi prompt giao dọn nhánh local rõ: tag `archive/<tên>` xác minh tip và việc chưa push trước xoá an toàn; không force-delete/remote delete. Prompt cấm xoá thì giữ nguyên. Không thực hiện ngoại lệ reset --soft nếu chưa được giao rõ.
+
+## 10. Chốt công cụ và token round-trip (D1/D2/D4 · 29/10)
+
+Superpowers cho kỷ luật thi hành; UI UX Pro Max cho tra cứu/kiểm thiết kế. Prototype dùng component thật, thông số chỉ đổi trong preview cho tới khi duyệt. Bản MD/JSON có schemaVersion, source id/hash, token allowlist light/dark; import từ nguồn khác hoặc thiếu token thì từ chối. Điều phối sở hữu ảnh/REVIEW, giao task riêng nạp token được duyệt vào DS, dựng lại trang token và kiểm component/caller dùng chung. Không tự ghi token nguồn từ preview.

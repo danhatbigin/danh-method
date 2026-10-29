@@ -20,7 +20,7 @@ Phương pháp của Danh Nguyen (Head of Design, Bigin) để một designer t�
 | 0 | Dựng repo spec, hồ sơ người dùng, config dự án | `project-setup` | — |
 | 0.5 | Stage 2: chốt token (màu, font, bo góc, khoảng cách, light/dark), dựng **trang HTML token** để duyệt | `design-tokens` | Duyệt token (G0) |
 | 1 | Stage 1–3: hiểu vấn đề, quyết định cấu trúc, viết PRD / USER_FLOW / GUIDANCE / TASKS | `feature-spec` | Người phụ trách sản phẩm duyệt chữ (D/Q) |
-| 2 | Stage 4: dựng **HTML preview** + ảnh 1440/768/390 sáng/tối + DESIGN-NOTES | `design-prototype` | Duyệt preview (G1) |
+| 2 | Stage 4: preview component thật + token controls MD/JSON; điều phối chụp ảnh/REVIEW | `design-prototype` | Duyệt preview (G1) |
 | 3 | Viết **prompt hợp đồng** cho phần thi hành (design / logic / UI tách riêng) | `prompt-contract` | Duyệt Q/A đã chốt (G2) |
 | 4 | Thi hành: một task hoặc một batch, TDD, verify theo tier, git an toàn | `execute-tasks` | Điều kiện dừng viết sẵn |
 | 5 | Điều phối subagent theo bề mặt, reviewer chỉ đọc diff | `subagent-orchestration` | Kiểm bằng chứng; G3 sau Stage 6 |
@@ -69,7 +69,7 @@ Hai trục riêng (D3):
 ## 7. Công cụ
 
 - **ui-ux-pro-max** là plugin đi kèm (gợi ý nền thị giác, sinh token, soát màu viết cứng, tra cứu UX). Chưa cài thì **hỏi xin phép, nêu lý do** rồi mới cài — cách làm ở `design-tokens/references/install-ui-ux-pro-max.md`. Bị từ chối thì làm thủ công, không hỏi lại trong phiên.
-- Thiết kế/redesign: `ui-ux-pro-max` để tra cứu; giữ design system đã chốt. **Không dùng Superdesign** (bị loại vì chi phí). **Không dùng ponytail cho việc design** (từng sinh sai hướng).
+- Thiết kế/redesign: `ui-ux-pro-max` để tra cứu; giữ design system đã chốt. Superpowers giữ kỷ luật thi hành.
 - `superpowers` dùng như **kỷ luật**, không phải menu: brainstorming (làm rõ trước khi build), executing-plans, subagent-driven-development, systematic-debugging, test-driven-development, verification-before-completion.
 - Kiểm tra: verify-kit (`execute-tasks/assets/verify-kit`).
 

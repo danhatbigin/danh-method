@@ -20,7 +20,9 @@ Dùng công cụ hỏi lựa chọn (AskUserQuestion nếu có). Gom thành mộ
 
 Thiếu câu trả lời nào ảnh hưởng cấu trúc thì ghi là *giả định* trong file, không tự quyết im lặng.
 
-## 2. Tạo repo spec
+## 2. Tạo repo spec / thư mục `docs` (Tách biệt tuyệt đối Tài liệu và Source Code)
+
+**Quy tắc cứng:** Toàn bộ tài liệu nghiên cứu (`research/`), PRD/spec (`features/`, `specs/`), nhật ký (`log/`), prompt (`prompts/`), `HANDOFF.md` bắt buộc đặt ở repo `<tên>-spec` hoặc thư mục `docs/` nằm **ngoài repo source code**. Tuyệt đối không để tài liệu nghiên cứu hay quản lý dự án lẫn trong repo source code (thêm `research/`, `docs/`, `HANDOFF*.md` vào `.gitignore` của repo code).
 
 Theo `references/spec-repo-skeleton.md`. Kết quả tối thiểu:
 

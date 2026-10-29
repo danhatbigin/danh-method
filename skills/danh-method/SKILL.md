@@ -5,7 +5,13 @@ description: Entry point of the Danh Method, a designer-led way to build a produ
 
 # Danh Method — cửa vào
 
-Phương pháp của Danh Nguyen (Head of Design, Bigin) để một designer tự dẫn dắt agent build sản phẩm tới mức hoàn thiện, rút ra từ dự án MiVida Portal. Skill này định hướng; việc cụ thể nằm ở các skill con.
+Phương pháp của Danh Nguyen (Head of Design, Bigin) để một designer tự dẫn dắt agent build sản phẩm tới mức hoàn thiện, đúc kết từ thực tế xây dựng sản phẩm hoàn chỉnh. Skill này định hướng; việc cụ thể nằm ở các skill con.
+
+## 0. Quy tắc cứng: Tách biệt tuyệt đối Tài liệu (`docs` / `spec`) và Source Code
+
+- **Source repo chỉ chứa mã nguồn chạy sản phẩm và test.** Tuyệt đối không đặt tài liệu nghiên cứu (`research/`), PRD/đặc tả (`specs/`, `features/`), nhật ký (`log/`), prompt bàn giao (`prompts/`), `HANDOFF.md` hay ví dụ khảo sát (`examples/`) vào trong repo source code.
+- Toàn bộ tài liệu nghiên cứu, đặc tả, lịch sử quyết định và bàn giao bắt buộc nằm ở thư mục `docs/` ngoài source repo (hoặc repo `<tên>-spec` riêng biệt).
+- Trong `.gitignore` của repo source luôn chặn `research/`, `docs/`, `HANDOFF*.md` để tránh commit nhầm tài liệu vào mã nguồn.
 
 ## 1. Trước khi làm gì: đọc hồ sơ và kiểm plugin đi kèm
 

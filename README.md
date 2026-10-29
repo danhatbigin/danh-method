@@ -10,8 +10,6 @@ How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer c
 - **Cowork:** Install the packaged `.plugin` archive from this repository.
 - **Codex / Antigravity / AionUI:** See `portable/README.md`.
 
-Additional directories: `research/` (workflow study notes), `examples/` (sample token artifacts).
-
 ## Quick Start
 
 1. Install the plugin and say: *"Setup dự án mới theo danh-method"* (or *"Set up a new project with danh-method"*) → `project-setup` scaffolds the spec repository, operator profile (designer/developer), and project config, then checks for companion plugins (`Superpowers` and `ui-ux-pro-max`) and asks permission before installing if missing.
@@ -52,6 +50,7 @@ Additional directories: `research/` (workflow study notes), `examples/` (sample 
 
 ## Notes
 
+- **Strict Separation of Docs & Source:** All research notes (`research/`), product specs (`specs/`), prompts (`prompts/`), work logs (`log/`), and handoffs (`HANDOFF.md`) MUST live in a dedicated documentation directory (`docs/` or `<project>-spec`) outside the source code repository. Never commit research or project-management docs into the source repo.
 - Skill instructions are written in Vietnamese for the team; skill `description` frontmatter is in English for reliable agent trigger matching.
 - Stack-neutral architecture. Project-specific conventions (border rules, typography, allowed ports, chosen UI library) live in the target project's `process/project.md`.
 - Version `0.4.0` · 2026-10-29.

@@ -3,3 +3,10 @@ node_modules/
 .DS_Store
 Thumbs.db
 review-screens/
+research/
+docs/
+examples/
+HANDOFF*.md
+*-progress.md
+findings*.md
+inventory*.md

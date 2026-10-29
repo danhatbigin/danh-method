@@ -1,7 +1,7 @@
 {
   "name": "danh-method",
   "version": "0.4.0",
-  "description": "Danh Method — a designer-led workflow to solo-build a product with AI agents: spec first, HTML preview gate, contract prompts, subagent execution, honest verification and acceptance. Distilled from the MiVida Portal build at Bigin.",
+  "description": "Danh Method — a designer-led workflow to solo-build a product with AI agents: spec first, HTML preview gate, contract prompts, subagent execution, honest verification and acceptance. Distilled from shipping a production-grade product end-to-end.",
   "author": {
     "name": "Danh Nguyen",
     "email": "danh.nguyen@bigin.vn"

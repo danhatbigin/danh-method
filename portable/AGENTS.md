@@ -46,6 +46,7 @@ Dữ kiện: Git/code thật → snapshot prompt → HANDOFF (cache); HEAD lạ 
 ## 6. Thiết kế
 
 - Cấu trúc trước bề mặt: đúng việc → đúng cấu trúc → nhất quán → đẹp. Dashboard phải trả lời câu hỏi nghiệp vụ.
+- **Tách biệt tuyệt đối Tài liệu và Source Code:** Repo code chỉ chứa mã nguồn và test. Mọi tài liệu nghiên cứu (`research/`), đặc tả (`specs/`, `features/`), nhật ký (`log/`), prompt (`prompts/`), `HANDOFF.md` bắt buộc nằm ở thư mục `docs/` ngoài repo code (hoặc repo `<tên>-spec` riêng). Không bao giờ commit tài liệu nghiên cứu/quản lý vào repo code.
 - Không custom style ngoài thư viện/token; không tự vẽ chart khi thư viện có; gradient/màu đúng cả light và dark.
 - Đường vào ≤ 3 bước; task ≤ 3 bước (đếm riêng); một hành động chính mỗi điểm quyết định; 6×6; CTA là động từ; nút không có quyền vẫn bấm được và giải thích lý do.
 - Trạng thái không chỉ dựa vào màu; trục trạng thái độc lập hiển thị độc lập; AA ≥ 4.5:1; không tràn ngang ở 1440 / 768 / 390, light + dark.

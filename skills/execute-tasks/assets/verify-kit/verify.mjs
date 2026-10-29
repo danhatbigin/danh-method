@@ -268,10 +268,13 @@ const NOT_FOUND = /is not recognized as an internal or external command|command 
 const OFFLINE = /ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|ECONNRESET|getaddrinfo|fetch failed|network|offline/i;
 function runOne(k, opts = {}) {
   const t0 = Date.now();
-  const r = spawnSync(k.cmd, { shell: true, cwd: ROOT, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024, timeout: (cfg.timeoutSec || 900) * 1000, env: { ...process.env, CI: '1', FORCE_COLOR: '0' } });
+  // A5.4/D8: full PR checks have an independent budget; development stays scoped.
+  const configured = has('--pr') ? cfg.prTimeoutSec : cfg.timeoutSec;
+  const timeoutSec = Number.isFinite(configured) && configured > 0 ? configured : 900;
+  const r = spawnSync(k.cmd, { shell: true, cwd: ROOT, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024, timeout: timeoutSec * 1000, env: { ...process.env, CI: '1', FORCE_COLOR: '0' } });
   k.secs = ((Date.now() - t0) / 1000).toFixed(1);
   const out = ((r.stdout || '') + (r.stderr || '')).trim();
-  if (r.error?.code === 'ETIMEDOUT') { k.status = ST.FAIL; k.reason = `quá ${cfg.timeoutSec || 900}s`; k.tail = out.split('\n').slice(-10).join('\n'); return; }
+  if (r.error?.code === 'ETIMEDOUT') { k.status = ST.FAIL; k.reason = `quá ${timeoutSec}s`; k.tail = out.split('\n').slice(-10).join('\n'); return; }
   if (r.status === 0) { k.status = ST.PASS; return; }
   if (r.status === 127 || r.status === 9009 || (out.length < 600 && NOT_FOUND.test(out))) { k.status = ST.NC; k.reason = 'lệnh/công cụ không có trên máy này'; k.tail = out.split('\n').slice(-3).join('\n'); return; }
   if (opts.offlineSkips && OFFLINE.test(out)) { k.status = ST.SKIPPED; k.reason = 'không có mạng — chưa kiểm tra được'; return; }

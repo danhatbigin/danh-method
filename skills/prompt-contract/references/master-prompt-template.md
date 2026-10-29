@@ -21,7 +21,7 @@ Người dùng: <vai>, đọc báo cáo bằng tiếng Việt, ngắn (3–5 dò
 5. USER_FLOW.md · 6. GUIDANCE.md · 7. TASKS.md · 8. REVIEW.md / DESIGN-NOTES.md
 9. Prototype đã duyệt: <spec>/features/<f>/prototype/<f>.html
 
-TRẠNG THÁI THỰC TẾ (tin phần này hơn HANDOFF nếu lệch):
+SNAPSHOT THỰC TẾ (tự kiểm Git; dữ kiện Git thật thắng snapshot/HANDOFF):
 - <task nào xong, commit nào; file nào đang dở CHƯA COMMIT — liệt kê>
 
 GATE & QUYẾT ĐỊNH ĐÃ CHỐT:
@@ -29,7 +29,7 @@ GATE & QUYẾT ĐỊNH ĐÃ CHỐT:
 - G2 (Q01–Qn):
   - Q01 (<chủ đề>): <quyết định cụ thể, giá trị, hành vi biên>
   - …
-- G3 (Engineering & nhánh): <nhánh, migration nối tiếp, bảo toàn dữ liệu>
+- Chuẩn bị engineering: <nhánh, migration nối tiếp, bảo toàn dữ liệu>. G3 là vòng owner review sau Stage 6 và các gate, không phải quyền tự merge.
 
 VIỆC 0 — CHỐT VIỆC DỞ (1 lần trước khi code):
 1. `git status` ở cả hai repo. Không xoá / stash / reset việc phiên trước đã làm.
@@ -51,7 +51,7 @@ CÁCH LÀM MỖI TASK:
 
 CHẠY LIÊN TỤC tới hết <MÃ>-nn. CHỈ DỪNG KHI:
 - việc không thể đảo ngược; ngoài phạm vi PRD; ảnh hưởng dữ liệu/quyền mà PRD không trả lời;
-- test cũ đỏ không sửa được trong task; verify FAIL sau 1 lần sửa;
+- FAIL phân loại theo execute-tasks; lỗi code còn FAIL sau ngân sách sửa đã cấp;
 - sắp hết hạn mức: dừng viết dở, verify xanh, cập nhật HANDOFF + log, commit rồi mới dừng.
 Không mở được trình duyệt: ghi kịch bản chưa kiểm vào HANDOFF mục "Chờ kiểm trình duyệt" rồi làm tiếp.
 
@@ -73,3 +73,7 @@ MẪU HANDOFF (luôn giữ ở đầu docs/log/HANDOFF.md, giữ lịch sử bê
 Tiếp tục prompt <spec>/prompts/<file>.md. Đọc <code>/docs/log/HANDOFF.md trước, kiểm tra git status ở cả hai repo, rồi làm tiếp đúng "Task đang làm" và "Bước tiếp theo" tới hết <MÃ>-nn. Giữ mọi quy tắc cứng; không reset hay stash thay đổi chưa commit.
 ```
 ````
+
+## Điều kiện kết thúc cần điền (A4.2)
+
+Không dừng sau đọc/kế hoạch/merge. Điền đầu ra cuối, AC hiện hành, bằng chứng kiểm, trạng thái placeholder, PR/push/đóng gói nếu giao. Blocker mới phải có bằng chứng; làm phần độc lập trong lúc chờ. Agent thi hành không tự mở subagent. Tiếp quản dùng `--base <mốc tiếp nhận>` và giữ ngân sách FAIL.

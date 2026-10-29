@@ -45,3 +45,10 @@ Người phụ trách sửa theo từng phần ("Anh sẽ duyệt và sửa qua 
 - Chỉ sửa đúng mục được nêu. Ghi "Vòng n · đã sửa gì" vào DESIGN-NOTES; quyết định mới ghi ngày.
 - Chụp lại đúng các màn bị ảnh hưởng.
 - Khi duyệt: ghi vào PRD trạng thái "Preview v<x> đã duyệt <ngày>", mở gate G1 trong TASKS.
+
+## 6. Hành vi và bằng chứng v0.3 (A3.1–A3.7; B6/B7)
+
+- Tuân thủ W15 nút theo đối tượng, ≤1 filled/màn, state UI khác persist, drawer quyết định và scrollbar OS ở `references/design-rules.md`.
+- Bắt buộc giao test script prototype cho mọi trạng thái: ≤1 filled, không lặp hành động, 6×6 và số bước E/T; ngoại lệ 4 bước phải có quyết định PRD.
+- REVIEW theo vòng R1…Rn và STATUS-REVIEW có mẫu `references/review-templates.md`. Màu status theo DS, kiểm đủ giá trị và xin duyệt map, không custom token.
+- Thay đổi rộng dùng một nguồn + opt-in prop + test quét caller, không rải class.

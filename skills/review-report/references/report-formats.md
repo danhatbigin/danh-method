@@ -76,3 +76,31 @@ Thay đổi: <3 dòng>. verify --pr: <kết quả hoặc "cần anh chạy grant
 Depends on #<m>. Migration: <có/không, bảo toàn dữ liệu cũ>.
 Lý do chọn <phương án>: <1 dòng>.
 ```
+
+## 6. B5 — đối chiếu FIXES và Review fixes
+
+```markdown
+## Đối chiếu review ↔ PRD
+| Finding | PRD / mã quyết định | Giữ / sửa / bác | Lý do + bằng chứng |
+|---|---|---|---|
+| <…> | <…> | <…> | <…> |
+## Finding bị bác
+| Finding | Vì sao review hiểu sai | PRD/code đã đọc | Ai chốt |
+|---|---|---|---|
+| <…> | <…> | <…> | <…> |
+## Review fixes
+| Finding | Mục S# | Commit | Test/ảnh kiểm lại | Kết quả / còn thiếu |
+|---|---|---|---|---|
+| <…> | <…> | <…> | <…> | <…> |
+Test đổi expectation comment mã quyết định; không nới assertion che fixture sai.
+```
+
+## 7. PR description
+
+```markdown
+Người dùng giờ <thấy/làm được gì và vì sao>.
+Chức năng: <trước/sau, biên và quyền>.
+Code: <vùng đổi, migration/dependency>.
+Validation: <lệnh/kết quả thật, HEAD, số đo + đơn vị + điều kiện>.
+Review fixes: <bảng trên>. Bỏ qua: <…>. Rủi ro: <…>.
+```

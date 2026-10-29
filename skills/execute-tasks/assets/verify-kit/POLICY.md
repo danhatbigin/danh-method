@@ -30,7 +30,7 @@ Lệnh cụ thể của từng tier nằm trong `.verify/config.json`. Xem thử
 Dòng cuối: `verify: tier N · STATUS · <đếm> · security: STATUS`.
 
 - `PASS`: lệnh đã chạy và xanh.
-- `FAIL`: lệnh đã chạy và đỏ. Sửa tối đa một lần rồi chạy lại; vẫn đỏ thì dừng và báo.
+- `FAIL`: lệnh đã chạy và đỏ. Phân loại trước khi sửa theo bảng dưới; chỉ lỗi code trong phạm vi tính lượt, tối đa một lần hoặc số lượt đã cấp; còn đỏ thì dừng và báo.
 - `SKIPPED`: không có gì để chạy (docs-only) hoặc bị bỏ vì lệnh trước đã FAIL. **Không phải là đã kiểm tra.**
 - `NOT_CONFIGURED`: thiếu script/công cụ để chạy kiểm tra này. **Không được báo là xanh**; báo cho người giao việc.
 
@@ -63,3 +63,18 @@ Guard không còn cơ chế bỏ qua bằng chuỗi tuỳ ý (`!fulltest`, `VERI
 ## Khi quy tắc của repo nói khác
 
 Nhiều repo ghi "typecheck + test + build phải xanh trước mỗi commit". Với tier 0 và 1, file này thay phần test/build đó bằng `node .verify/verify.mjs`; build dồn vào `--batch`/`--pr`. Các quy tắc khác của repo (nhánh, log, handoff, commit nhỏ) giữ nguyên.
+
+## FAIL và tiếp quản (A5.1–A5.4)
+
+| Loại FAIL | Xử lý | Tính lượt code |
+|---|---|---|
+| Hỏng thừa kế | Chứng minh tại base; commit riêng `broken since <hash>` nếu được giao sửa | Không |
+| Test theo PRD cũ | Sửa test theo PRD hiện hành; comment mã quyết định | Không |
+| PRD chưa nói | Dừng phần phụ thuộc, hỏi, cập nhật PRD rồi cấp lượt mới | Chờ chốt |
+| Môi trường/cấu hình | Ghi lỗi nguyên văn, sửa trong quyền đã có | Không |
+| Fixture lệch hợp đồng | Sửa fixture, giữ assertion | Không |
+| Code trong phạm vi | Sửa theo ngân sách đã cấp | Có |
+
+Ghi tên test + assertion + message nguyên văn, base, lệnh/log và lượt còn lại. Không đổi task/agent/phiên/base hay xoá log để lách; không skip test/hạ tier. Chưa có chứng cứ thì chưa phân loại. FAIL vẫn là FAIL và chặn merge-ready kể cả miễn lượt.
+
+Tiếp quản: `--base <mốc tiếp nhận>` để không bỏ việc dở; không thay bằng task-start mới. `prTimeoutSec` là timeout riêng mỗi lệnh PR (mặc định 900s), `timeoutSec` cho lệnh thường. Biết suite vượt giới hạn thì báo owner, không chạy lại cùng cấu hình.

@@ -40,3 +40,5 @@ Kỷ luật:
 - Dừng chỉ theo điều kiện trong brief; quyết định sản phẩm thì dừng và hỏi; quyết định kỹ thuật thuần thì chọn an toàn, ghi giả định.
 
 Trả về cho agent điều phối: task xong / dừng ở đâu và vì sao; commit theo task; dòng `verify:` nguyên văn; view model nào sẵn sàng cho UI; Bỏ qua; Rủi ro; Cần quyết.
+
+Bổ sung v0.3: chỉ ghi tên đã mở đọc trong XX-00. Commit type/interface an toàn trước chia nhánh; sau mỗi task push ghi `<TASK> pushed <hash>` trong HANDOFF. Phân loại FAIL trước tính lượt; ghi tên test/assertion/message nguyên văn. Tiếp quản dùng `--base <mốc tiếp nhận>`, một writer/worktree; không tự mở subagent.

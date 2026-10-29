@@ -50,3 +50,11 @@ Quy tắc viết:
 Dừng và gửi người phụ trách sản phẩm: link PRD, số Q cần duyệt (kèm mặc định), E/T nào sát 3 bước, ngoài phạm vi. Chưa duyệt thì không sang `design-prototype` hay `prompt-contract` — trừ khi họ nói "dùng mặc định, chạy luôn"; khi đó ghi "Q1–Qn: dùng mặc định đề xuất, chờ phản hồi sau demo" vào PRD.
 
 Duyệt xong: cập nhật trạng thái PRD (phiên bản, ngày, ai duyệt), đóng Q thành quyết định, commit + push repo spec.
+
+## 5. Khảo sát và hợp đồng (A2.1, A2.2; B11)
+
+- Research mode: hỏi hiện trạng chức năng trước, đọc code chỉ đọc rồi trình bày lựa chọn. Feature lõi trước màn tổng hợp.
+- XX-00 chỉ ghi tên file/hàm/component đã mở đọc; kèm đường dẫn + commit. Điều phối đối chiếu baseline trước task 01.
+- GUIDANCE có hợp đồng dữ liệu: field ngày, mốc/múi giờ, hai biên, đơn vị đếm, thiếu dữ liệu và breaking change; mẫu `references/guidance-template.md`.
+- “Cowork chốt theo mặc định” là đề xuất có nhãn, chưa phải người phụ trách duyệt. Thi hành mặc định chỉ khi đã được uỷ quyền rõ.
+- Dữ liệu mẫu cần duyệt: `references/demo-proposal-template.md`, không tự nạp DB demo.

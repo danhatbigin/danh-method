@@ -43,7 +43,7 @@ Rút từ 379 tin nhắn của Danh trên Claude, Codex, Antigravity, AionUI (08
 
 | # | Nguyên tắc |
 |---|---|
-| D23 | Trạng thái do người phụ trách khai báo thắng HANDOFF cũ ("HANDOFF đang cũ, tin phần này"). |
+| D23 | D3 (v0.3): dữ kiện Git/code thật > snapshot prompt > HANDOFF; quyết định/phạm vi người phụ trách > prompt hiện hành > PRD. HEAD lạ dừng và giữ việc dở. |
 | D24 | Prompt đổi → bỏ prompt cũ trong phiên, đọc lại từ đầu. |
 | D25 | Người phụ trách quyết sản phẩm; owner quyết kỹ thuật/merge. |
 | D26 | Các vai cùng nhìn một sự thật nghiệp vụ (không silo dữ liệu giữa các role cùng phối hợp). |
@@ -69,3 +69,7 @@ Không dừng ở triệu chứng; không chấp nhận sửa mù.
 | Kiểm UI bắt buộc vs "không mở được browser thì ghi lại rồi làm tiếp" | Giai đoạn đầu được nợ có ghi chép ("Chờ kiểm trình duyệt"); trước nghiệm thu thì bắt buộc. |
 | Mock vs dữ liệu thật | Mock ở prototype, thật ở môi trường có backend; luôn khai rõ đang ở đâu. Code không chứa dữ liệu mẫu. |
 | Ai duyệt cuối | Sản phẩm/UX = người phụ trách sản phẩm; kỹ thuật/merge = owner. |
+
+## Cập nhật sau khảo sát 23–29/10
+
+D14 là trích lịch sử; luật hiện hành A5.1/D6 yêu cầu phân loại FAIL trước khi tính lượt sửa, không dừng chung vì test cũ đỏ. G3 là vòng review owner sau Stage 6 và gate PR/AC/blocker (A1.2). D17 chia theo glob có chồng file hay không (D5), không theo số finding.

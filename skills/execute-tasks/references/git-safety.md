@@ -29,3 +29,14 @@
 - Khoá test dùng chung (`*.lock`): chờ nếu người khác giữ; ghi tên khi giữ; xoá khi xong.
 - Windows: npm qua `cmd` nếu PowerShell chặn `npm.ps1`; không ghi file bằng `Set-Content`/`Add-Content` (sai encoding); UTF-8 + LF.
 - Không commit: dump, `.env`, secret, file local của người dùng, thư mục `.superpowers/`.
+
+## Bổ sung v0.3 (A5.6, A6.5; ưu tiên thấp §2)
+
+- Stage đúng dòng của mình, xem staged diff; không bulk commit repo spec.
+- Nhánh xếp chồng ghi Depends on; khi cha đổi, merge cha vào con và verify lại; không đổi base che FAIL.
+- Trước PR kiểm `git merge-tree --write-tree <nhánh mình> <nhánh song song>` với mọi nhánh liên quan.
+- D10: ngoại lệ dọn nhánh **local** chỉ khi prompt giao rõ. Lưu tag `archive/<tên>` trỏ đúng tip; xác minh tag, việc chưa push và nhánh không còn dùng trước xoá an toàn. Không force-delete/remote delete; hook vẫn chặn `-D`/remote delete. Prompt cấm xoá thì không dùng ngoại lệ.
+- Gom WIP bằng `reset --soft` chỉ cho commit chưa push và prompt cho phép rõ; mặc định giữ commit nhỏ/revert. Không viết lại lịch sử đã chia sẻ.
+- Windows: kiểm nháy kép qua Docker/shell; UTF-8 không BOM + LF; tránh `NUL` lẫn log PowerShell, redirection đúng shell; không secret trong lệnh/log.
+- Khoá test có chủ/PID/thời điểm; chờ khi chủ còn hoạt động. Khoá bỏ quên phải xác minh chủ đã dừng rồi xử lý trong quyền được giao; không kill PID lạ.
+- Dọn server/worktree đã xong theo prompt; xác minh cổng chạy bản latest; DB tạm phải xác minh tên và chủ trước dọn.

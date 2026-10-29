@@ -34,3 +34,19 @@ Bạn là reviewer, KHÔNG sửa code, KHÔNG checkout/commit/merge. Đọc bằ
 Soi theo: PRD (AC, quyền), GUIDANCE (bẫy), review focus trong TASKS, bảo mật (dữ liệu nhạy cảm xuống client, kiểm quyền phía server), test có chứng minh hành vi không, UI có lệch preview/token không.
 Trả về bảng: # | Mức (Critical/Major/Minor) | Issue | Nguyên nhân (file:dòng) | Kết quả / tái hiện | Giải pháp. Cuối cùng: "Sẵn sàng để <X> merge" hoặc "Chưa sẵn sàng — cần sửa #…".
 ```
+
+## B3/B4 — hợp đồng logic → UI và bắt tay
+
+```markdown
+Hợp đồng type/interface: <file, commit đã có trước chia nhánh>.
+Glob logic sở hữu: <…>; glob UI sở hữu: <…>; file chung giao ai, tuần tự khi chồng.
+Mốc nhận/base: <hash>; verify --base <hash> khi tiếp quản.
+Logic báo HANDOFF: <TASK> pushed <hash>.
+UI trước mỗi task: fetch+merge <nhánh logic>, ghi hash đã nhận; không đợi toàn bộ logic.
+| C0 | Màn/caller đã đọc | Dữ liệu cần | API/type đã có | Thiếu thật | Cách bổ sung + chủ |
+|---|---|---|---|---|---|
+| <…> | <…> | <…> | <…> | <…> | <…> |
+UI cần: <C0 + bằng chứng>; không tự tạo API trùng.
+Tích hợp: logic chịu db/mock-data, UI chịu apps/ui theo glob; kiểm hunk, không chọn mù ours/theirs.
+Một writer/worktree khi tiếp quản; không tự mở subagent; không kill PID lạ.
+```

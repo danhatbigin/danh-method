@@ -26,14 +26,15 @@ Không chia khi: các mục chạm cùng vùng code (sửa theo review → một
 ## 3. Nhịp chuẩn một feature
 
 ```
-PRD duyệt ──┬─> design-prototyper ──> (người phụ trách duyệt preview, G1)
-            └─> logic-implementer ──> code-reviewer ──> sửa
-                                   └─> ui-implementer (sau G1) ──> code-reviewer ──> sửa
-                                                                └─> acceptance-tester ──> ACCEPTANCE
+PRD duyệt → hợp đồng type/interface đã commit → tách nhánh theo glob
+  Design → preview duyệt G1 ──────────────┐
+  Logic L1 → pushed hash → Logic L2      │
+                └──── fetch/merge + G1 → UI U1 → fetch/merge L2 → UI U2
+  Review chỉ đọc → sửa → Stage 6 + PR gate + AC + hết blocker → owner G3
 ```
 
 - Design và logic chạy **song song** ngay khi PRD duyệt.
-- UI chỉ chạy sau G1 và khi logic đã có view model.
+- UI chạy sau G1 và task logic cần dùng đã có dòng `<TASK> pushed <hash>`; không đợi toàn bộ logic (A6.1/D7).
 - Mỗi subagent làm xong → người điều phối **tự kiểm** trước khi báo: git log/diff thật, dòng `verify:` thật, ảnh có thật. Không chuyển lời subagent thành lời mình khi chưa kiểm.
 
 ## 4. Viết brief
@@ -57,3 +58,20 @@ Brief = prompt hợp đồng thu gọn (skill `prompt-contract`), theo `referenc
 ## 7. Báo người phụ trách sản phẩm
 
 Sau mỗi mốc (không phải mỗi lần subagent trả về): 3–5 dòng — mốc nào xong, cần anh duyệt gì (preview link, Q), rủi ro. Định dạng bảng chi tiết dùng skill `review-report`.
+
+## 8. Logic ‖ UI bắt tay theo task (A6.1–A6.7/D5/D7; B3/B4/B8)
+
+```text
+PRD → commit hợp đồng type/interface an toàn → tách nhánh theo glob
+Logic: task L1 → pushed hash ─────────────→ task L2 → pushed hash
+UI:      G1 + fetch/merge L1 → task U1 ──→ fetch/merge L2 → task U2
+Tích hợp → merge-tree mọi nhánh song song → verify + AC → Stage 6 → owner G3
+```
+
+- Commit hợp đồng kiểu dữ liệu trước chia nhánh; không dùng stub trả dữ liệu giả trong production. Logic và UI ở hai worktree, sở hữu theo glob.
+- Logic cập nhật HANDOFF đúng dòng `<TASK> pushed <hash>`. UI fetch+merge nhánh logic trước **mỗi** task; ghi hash đã nhận. Có xung đột thì giải theo hợp đồng.
+- Thiếu dữ liệu ghi “UI cần: …”; điều phối kiểm bảng C0: màn/caller → cần → API có → thiếu thật → cách bổ sung. Đọc code trước kết luận thiếu; không tạo API trùng.
+- Tích hợp: logic chịu trách nhiệm db/mock-data, UI chịu trách nhiệm apps/ui theo glob cụ thể trong brief; kiểm từng hunk, không chọn mù ours/theirs.
+- Tiếp quản: chỉ một writer/worktree; verifier chỉ đọc. Chia subagent theo việc có chồng file hay không, không theo số finding. Agent thi hành không tự mở subagent.
+- Điều phối dùng model mạnh, tác vụ hẹp dùng model rẻ đã có; một tác vụ nặng tại một thời điểm. Nhiều agent độc lập dùng TEAM-BOARD ở `references/coordination-templates.md`.
+- Hết quota bàn giao vai điều phối bằng B1, commit/push phần đã được kiểm, giữ base/ngân sách, liệt kê tài nguyên và bước tiếp.

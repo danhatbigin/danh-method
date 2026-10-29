@@ -77,3 +77,9 @@ Token đổi về sau: dựng lại trang, ghi "Thay đổi so với v<n>" trong
 ## 5. Tuỳ chọn: bản chia sẻ
 
 Cần chia sẻ cho khách/team mà không gửi file: publish trang (Artifact nếu môi trường có) hoặc tạo artifact Design System từ cùng nguồn token. Bản trong repo spec vẫn là bản gốc.
+
+## 6. Token theo vai và snapshot (A3.7; findings §4)
+
+Map radius theo vai card/tile/popover/item, không rải số đo theo màn; xem `references/shadcn-token-map.md`. Snapshot nguồn token (đường dẫn, commit/hash, ngày) lưu cùng TOKENS-NOTES.
+
+Có thể render component thật để tham chiếu số đo/provenance: ghi source hash, component/slot/biến thể, CSS input; nguồn đổi thì render lại. Component mẫu trong trang token không chứng minh đã render TSX thật. Renderer trung tính là tuỳ chọn, không chặn dự án.

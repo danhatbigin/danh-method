@@ -1,6 +1,6 @@
 # Mẫu HANDOFF
 
-Luôn giữ khối này ở **đầu** `docs/log/HANDOFF.md` của repo code (hoặc `features/<f>/HANDOFF.md` nếu project để ở spec); lịch sử giữ nguyên bên dưới. HANDOFF là **cache** cho phiên sau, không phải chân lý — người điều phối có thể ghi đè bằng "trạng thái thực tế" trong prompt.
+Luôn giữ khối này ở **đầu** `docs/log/HANDOFF.md` của repo code (hoặc `features/<f>/HANDOFF.md` nếu project để ở spec); lịch sử giữ nguyên bên dưới. HANDOFF là **cache** cho phiên sau, không phải chân lý — dữ kiện Git/code thật thắng snapshot trong prompt và HANDOFF; quyết định/phạm vi theo người phụ trách → prompt hiện hành → PRD (D3).
 
 ```markdown
 ## Trạng thái · <Feature>
@@ -20,3 +20,11 @@ Luôn giữ khối này ở **đầu** `docs/log/HANDOFF.md` của repo code (ho
 ```
 
 Log ngày: `docs/log/<yyyy-mm-dd>.md` (UTC+7) — mỗi task một mục: mã task, commit, việc đã làm, dòng `verify:`, Đạt / Khác / UNVERIFIED.
+
+## Trường v0.3 cần bổ sung
+
+- Mốc tiếp nhận để verify `--base`: <hash>; không đổi để bỏ việc dở.
+- FAIL: <tên test + assertion + message nguyên văn>; loại, bằng chứng và lượt còn lại.
+- Bắt tay: `<TASK> pushed <hash>`; UI đã fetch+merge nhánh logic @ <hash> trước task nào.
+- UI cần: <mã C0, caller, đã kiểm API nào, thiếu thật gì>.
+- Merge-ready: --pr / Stage 6 / AC / blocker; vòng owner G3 đang ở đâu.

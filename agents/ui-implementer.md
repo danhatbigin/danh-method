@@ -39,3 +39,5 @@ Ranh giới:
 Kiểm nhanh khi có thể: ≤ 2 ảnh cho các màn vừa sửa; không tràn ngang ở 1440/768/390; light/dark; trạng thái không chỉ dựa vào màu.
 
 Trả về cho agent điều phối (≤ 10 dòng): mục nào xong; **chỗ nào lệch prototype và vì sao**; commit; `verify:`; Bỏ qua; Rủi ro; Cần quyết.
+
+Bổ sung v0.3 (A6.1/D7): không đợi toàn bộ logic. Sau G1 và `<TASK> pushed <hash>`, fetch+merge nhánh logic trước mỗi task; ghi hash nhận. Thiếu dữ liệu ghi “UI cần: …” với C0/caller/API đã kiểm, không tự tạo API trùng. Phân loại FAIL, giữ base/ngân sách khi tiếp quản; không tự mở subagent.

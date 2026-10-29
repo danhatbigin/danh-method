@@ -22,17 +22,17 @@ Token được duyệt trên trang HTML token (G0, một lần đầu dự án) 
 
 ## 3. Nguồn sự thật khi lệch
 
-Trạng thái người giao khai báo trong lượt này → prompt trong repo spec tại HEAD (prompt đổi thì bỏ bản cũ, đọc lại từ đầu) → PRD/TASKS đã duyệt → HANDOFF (cache, có thể cũ) → suy luận của agent (ghi là *giả định*).
+Dữ kiện: Git/code thật → snapshot prompt → HANDOFF (cache); HEAD lạ thì dừng, lời “xong” phải tự kiểm. Quyết định/phạm vi: người phụ trách → prompt hiện hành tại HEAD → PRD/TASKS đã duyệt. Prompt đổi thì bỏ bản cũ, đọc lại; cập nhật PRD theo quyết định mới trước thi hành. Suy luận ghi là giả định (D3).
 
 ## 4. Thi hành
 
 1. Đọc theo thứ tự prompt quy định; `git status` / `log` trước khi sửa; giữ nguyên việc dở.
 2. Làm đúng phạm vi khai báo: "chỉ TK02" thì dừng sau TK02; "chạy liên tục A → B" thì không dừng giữa chừng.
 3. Task khảo sát (XX-00): không sửa code.
-4. Mỗi task: `node .verify/verify.mjs --task-start` → **test đỏ trước** (sai quyền, conflict; dữ liệu nhạy cảm có test payload theo role) → code nhỏ nhất, tái dùng thư viện/token → `node .verify/verify.mjs` (kiểm tra duy nhất; FAIL → sửa 1 lần → vẫn FAIL thì dừng) → tick TASKS + 1 dòng có ngày → CHANGELOG repo spec → HANDOFF + log ngày → commit nhỏ English → push nhánh → báo 3–5 dòng.
+4. Mỗi task: `node .verify/verify.mjs --task-start` → **test đỏ trước** (sai quyền, conflict; dữ liệu nhạy cảm có test payload theo role) → code nhỏ nhất, tái dùng thư viện/token → `node .verify/verify.mjs` (kiểm tra duy nhất; FAIL → phân loại trước; lỗi code tính lượt theo ngân sách, vẫn FAIL thì dừng) → tick TASKS + 1 dòng có ngày → CHANGELOG repo spec → HANDOFF + log ngày → commit nhỏ English → push nhánh → báo 3–5 dòng.
 5. Báo nguyên văn dòng `verify: …`. SKIPPED / NOT_CONFIGURED **không phải** đã test. Không tự chạy full suite / e2e / build / Playwright ngoài script; cần thì xin người giao chạy grant.
 
-**Chỉ dừng khi:** việc không đảo ngược được; ngoài phạm vi PRD hoặc ảnh hưởng dữ liệu/quyền mà PRD không trả lời; mở rộng mô hình dữ liệu / đổi kiến trúc chưa duyệt; test cũ đỏ không sửa được; verify FAIL lần 2; sắp hết hạn mức (→ verify xanh, HANDOFF, commit rồi mới dừng). Không mở được trình duyệt → ghi "Chờ kiểm trình duyệt" vào HANDOFF và làm tiếp.
+**Chỉ dừng khi:** việc không đảo ngược được; ngoài phạm vi PRD hoặc ảnh hưởng dữ liệu/quyền mà PRD không trả lời; mở rộng mô hình dữ liệu / đổi kiến trúc chưa duyệt; PRD chưa trả lời; lỗi code còn FAIL sau ngân sách đã cấp; sắp hết hạn mức (→ verify xanh, HANDOFF, commit rồi mới dừng). Không mở được trình duyệt → ghi "Chờ kiểm trình duyệt" vào HANDOFF và làm tiếp.
 
 ## 5. Git & môi trường
 
@@ -77,3 +77,17 @@ Trạng thái người giao khai báo trong lượt này → prompt trong repo s
 - Bỏ qua: <…> · Rủi ro / lỗi còn lại: <…>
 - Đang giữ: <khoá, cổng, tiến trình | không>
 ```
+
+## 9. Bổ sung v0.3 (findings A1–A8/D3/D5–D10)
+
+- Feature lõi trước màn tổng hợp; nghiên cứu hỏi hiện trạng chức năng trước. XX-00 chỉ ghi tên đã mở đọc; điều phối đối chiếu baseline trước task 01.
+- Báo ≤3 đạt / ≤3 cần sửa / 1 quyết định, ưu tiên hình/số đo thật; gom câu hỏi từ đầu và làm phần độc lập khi chờ. Giao việc “Đọc và làm theo <prompt>”. Không dừng sau đọc/kế hoạch/merge, không xong khi còn placeholder; blocker mới có bằng chứng.
+- FAIL: hỏng thừa kế (chứng minh base, commit riêng `broken since <hash>` nếu được giao), test theo PRD cũ (sửa test + comment mã quyết định), môi trường (sửa trong quyền), fixture lệch hợp đồng (sửa fixture, giữ assertion) không tính lượt code. PRD chưa nói thì chốt/cập nhật PRD/cấp lượt mới. Lỗi code tính ngân sách. Tên test/assertion/message ghi nguyên văn; không đổi task/agent/base/xoá log để lách. Miễn lượt vẫn chặn merge-ready nếu còn FAIL.
+- Tiếp quản: một writer/worktree, verifier chỉ đọc; verify `--base <mốc tiếp nhận>` giữ việc dở. Báo cáo `docs/engineering/<feature>-takeover-<ngày>.md`; không kill PID lạ.
+- Logic ‖ UI: commit type/interface an toàn trước chia nhánh; glob không chồng mới chia. Logic báo `<TASK> pushed <hash>`, UI sau G1 fetch+merge trước mỗi task; không đợi toàn bộ logic. “UI cần” có bảng C0 (caller/cần/API có/thiếu/cách bổ sung), không tạo API trùng. Agent thi hành không tự mở subagent.
+- Stage đúng dòng mình; nhánh xếp chồng merge cha vào con khi cha đổi; trước PR merge-tree với mọi nhánh song song. Không chọn mù ours/theirs. `prTimeoutSec` riêng (900s mặc định), biết timeout thì báo owner, không chạy lại cùng cấu hình.
+- Demo: báo trước, backup pg_dump, dry-run DB tạm, assertions sau nạp; dời lịch là seed lại, không sửa lẻ cột ngày. Nghiệm thu ghi giữ/tua đồng hồ và hệ quả. Dọn DB tạm/lock/server phải rõ chủ và quyền.
+- W15: record header ghost cho cả đối tượng; việc tới hạn ở banner; ≤1 filled/màn, banner sau tonal, không lặp action. State UI khác persist; đọc không auto-choose. Drawer quyết định đưa dữ liệu trước, Return phụ bấm mới hiện lý do; ngoại lệ 4 bước ghi PRD. Scrollbar OS; status map DS để duyệt; radius theo vai, inner=outer−padding. Prototype giao test script mọi trạng thái/E/T/6×6/CTA.
+- ACCEPTANCE: ĐẠT (test) khác ĐẠT (kiểm lại được); MỘT PHẦN / ĐẠT (có lỗi Bn) / CHƯA ĐẠT / KHÔNG KIỂM ĐƯỢC / KHÔNG CẦN SỬA có bằng chứng. Lỗi B# có mức; bảng tổng mỗi lượt; browser/CDP đang có thay Playwright được. Stage 6 + --pr PASS + AC chứng minh + hết blocker rồi owner review G3; không tự merge.
+- FIXES đối chiếu finding↔PRD, giữ finding bị bác kèm lý do; comment mã quyết định khi đổi expectation. PR: UX → chức năng → code; bảng Review fixes có commit/bằng chứng.
+- Không tự cài công cụ mới. D10 chỉ khi prompt giao dọn nhánh local rõ: tag `archive/<tên>` xác minh tip và việc chưa push trước xoá an toàn; không force-delete/remote delete. Prompt cấm xoá thì giữ nguyên. Không thực hiện ngoại lệ reset --soft nếu chưa được giao rõ.

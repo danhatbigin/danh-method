@@ -28,7 +28,7 @@ Mục tiêu: chứng minh bản chạy thật đạt PRD + USER_FLOW + DESIGN-NO
 - Không đổi mã sản phẩm. Lỗi chặn nghiệm thu → dừng, ghi rõ, báo người điều phối trước khi sửa.
 
 ### Kiểm
-1. Từng **AC** trong PRD: làm thật trên trình duyệt (Playwright), chụp bằng chứng đặt tên theo AC vào `review-screens/acceptance-<ngày>/`.
+1. Từng **AC** trong PRD: làm thật trên trình duyệt (Playwright, CDP hoặc công cụ browser đang có), chụp bằng chứng đặt tên theo AC vào `review-screens/acceptance-<ngày>/`.
 2. Từng **E** và **T**: đếm bước thực tế, so với USER_FLOW; ghi hành động chính ở mỗi điểm quyết định.
 3. Đổi role: Mine, thứ tự, quyền, popover lý do; server từ chối thao tác trái quyền.
 4. Responsive: 1440 / 768 / 390 (+1024/320 nếu PRD yêu cầu), light/dark; `scrollWidth === innerWidth`.
@@ -36,9 +36,17 @@ Mục tiêu: chứng minh bản chạy thật đạt PRD + USER_FLOW + DESIGN-NO
 6. Bề mặt khách hàng không lộ dữ liệu nội bộ.
 
 ### Trung thực
-- Ba trạng thái: **Đạt / Chưa đạt / Không kiểm được (vì sao)**. Không bịa PASS. Không kiểm được ≠ đạt.
-- Một AC chưa đạt hoặc chưa kiểm → feature **chưa được nghiệm thu**.
+- Trạng thái: **ĐẠT (test)**, **ĐẠT (kiểm lại được)**, **MỘT PHẦN**, **ĐẠT (có lỗi Bn)**, **CHƯA ĐẠT**, **KHÔNG KIỂM ĐƯỢC**, **KHÔNG CẦN SỬA**. Ghi loại bằng chứng; unit test không chứng minh đã kiểm browser. Không kiểm được ≠ đạt (A8.1/D9).
+- AC chưa đạt/chưa kiểm/MỘT PHẦN → feature chưa nghiệm thu đầy đủ. ĐẠT (có lỗi Bn) không xoá lỗi: ghi mức B#, tác động và ai chấp nhận; lỗi blocker vẫn chặn merge-ready. KHÔNG CẦN SỬA phải có PRD/bằng chứng giải thích.
 - Sửa lỗi xong thì thêm mục "Lượt n · sửa và kiểm lại", chạy lại đúng các mục bị ảnh hưởng và các nơi dùng chung component/token vừa đổi.
 
 ### Báo cáo (≤ 10 dòng)
 AC / E / T đạt bao nhiêu trên tổng; lỗi tìm thấy (mức nghiêm trọng); ảnh ở đâu; đã tắt server chưa; cần người phụ trách quyết gì.
+
+## C. Nhịp nghiệm thu và gate (A1.2, A5.8, A8.1; B9/B10)
+
+- Trước chạy ghi giữ hay tua đồng hồ demo, mốc/múi giờ, hệ quả và DB bản sao; không ngầm đổi thời gian. Unit test là mặc định; không tự chạy full suite/e2e ngoài quyền đã giao.
+- Lỗi B1…Bn có mức Blocker/Major/Minor, AC liên quan, bằng chứng và commit sửa. Sau mỗi lượt có bảng tổng AC/trạng thái/B#; không báo kết quả dựa trên lần cũ.
+- Dùng công cụ browser đang có (kể cả CDP), không buộc cài Playwright. Không có công cụ thì ghi chưa kiểm, không báo PASS.
+- Stage 6 ≠ merge-ready: cần --pr PASS + Stage 6 + AC có bằng chứng + hết blocker; tiếp đó owner review G3.
+- Handoff nghiệm thu cấp feature: `references/acceptance-handoff-template.md`.

@@ -48,3 +48,10 @@ Bản cho người phụ trách sản phẩm: ngắn, ngôn ngữ nghiệp vụ,
 ## 5. Báo cáo HTML khi cần chia sẻ
 
 Review dài cho owner có thể xuất HTML (ví dụ `PR22-REVIEW-<ngày>.html`) để đọc dễ; nội dung vẫn theo bảng trên. Nếu môi trường có Artifact/Docs thì dùng thay vì file rời.
+
+## 6. FIXES và bằng chứng review (A2.3; B5)
+
+- FIXES có bảng finding ↔ PRD ↔ quyết định giữ/sửa/bác. Finding bị bác ghi lý do và bằng chứng, không xoá dấu vết.
+- Test đổi expectation theo PRD phải comment mã quyết định cạnh expectation.
+- PR description: **trải nghiệm người dùng → thay đổi chức năng → code**. Bảng Review fixes: finding, PRD, commit, test/ảnh, trạng thái.
+- Số đo thật có đơn vị, điều kiện, công cụ, HEAD; chưa đo ghi chưa đo. Bản cho người phụ trách ≤3 đạt / ≤3 cần sửa / 1 quyết định, ưu tiên hình.

@@ -29,3 +29,14 @@
 ## Thứ tự ưu tiên khi xung đột
 
 Đúng việc (câu hỏi nghiệp vụ) → đúng cấu trúc (3 bước, 1 hành động chính, phân cấp) → nhất quán (token, pattern) → đẹp.
+
+## Bổ sung v0.3 (A3.1–A3.3, A3.6, A3.7)
+
+- W15 — nút theo đối tượng: header record chỉ hành động trên cả đối tượng, dạng ghost; việc tới hạn nằm trong banner có nút. **≤1 nút filled/màn**, banner sau dùng tonal; không lặp hành động ở header/banner/drawer cùng trạng thái.
+- Mặc định thông minh là state UI; chỉ persist sau hành động xác nhận. Server không auto-choose khi đọc dữ liệu.
+- Drawer quyết định đưa dữ liệu cần quyết lên trước; Return là nút phụ, bấm mới hiện ô lý do. Luồng 4 bước chỉ khi có chủ đích, người phụ trách duyệt và PRD ghi ngoại lệ; không giấu bước.
+- Ghim thông tin an toàn cần cho quyết định theo quyền; không làm lộ dữ liệu nội bộ ở bề mặt khách hàng.
+- Scrollbar để OS xử lý, không thêm CSS/JS tuỳ biến scrollbar.
+- Status kiểm DS trước; thiếu component thì đề xuất bám DS, không custom token. Liệt kê toàn bộ giá trị + map màu/chữ/icon để duyệt trong STATUS-REVIEW (`review-templates.md`).
+- Thay đổi diện rộng: một nguồn trong thư viện chung, opt-in prop và test quét mã nguồn kiểm caller; không rải class vào nhiều file.
+- Radius theo vai card/tile/popover/item; inner = outer − padding theo token đã duyệt.

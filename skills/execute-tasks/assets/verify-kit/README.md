@@ -50,3 +50,7 @@ Sửa `.verify/config.json`: `rules` (glob → tier/kind, khớp đầu tiên th
 ## Gỡ bỏ
 
 Xoá thư mục `.verify/`, các khối giữa `<!-- BEGIN:bigin-verify -->` và `<!-- END:bigin-verify -->`, entry hook trong `.claude/settings.local.json`, và các dòng dưới `# bigin-verify (local)` trong `.git/info/exclude`.
+
+## Timeout PR riêng (A5.4/D8)
+
+Config `prTimeoutSec` là số giây dương cho mỗi lệnh chạy ở `--pr` (gồm security), mặc định 900; `timeoutSec` dành cho các chế độ khác. Ví dụ `"prTimeoutSec": 1200` chỉ khi owner xác nhận suite cần hơn 900s. Không chạy lại cùng cấu hình khi đã biết timeout. Kiểm không chạy lệnh: `--classify` / `--pr --dry`; tiếp quản dùng `--base <mốc tiếp nhận>`.

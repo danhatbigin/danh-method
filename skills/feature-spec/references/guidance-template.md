@@ -28,3 +28,12 @@ Nguyên tắc: **tái dùng trước, viết mới sau.** Component UI lấy t�
 - Dữ liệu demo không nằm trong code; nằm trong file/dump ngoài repo.
 - Không đưa dữ liệu nhạy cảm (PHI…) xuống client khi thiếu quyền — có test payload theo role.
 ```
+
+## Hợp đồng dữ liệu bắt buộc (A2.2)
+
+Chèn vào GUIDANCE trước giao task:
+
+| Màn/caller | Hàm/type | Field ngày lọc | Mốc tham chiếu + múi giờ | Biên đầu/cuối (gồm/không gồm) | Đơn vị đếm | Null/thiếu | Breaking change + migration/caller |
+|---|---|---|---|---|---|---|---|
+
+Phân biệt member với order, không có dữ liệu với 0. Liệt kê test biên thời gian/quyền; commit type/interface an toàn trước tách nhánh logic/UI.

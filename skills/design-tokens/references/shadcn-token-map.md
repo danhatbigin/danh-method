@@ -27,3 +27,14 @@ Thêm theo dự án (ví dụ MiVida): `--red-flag`, `--attention`, `--surface-r
 - Secondary (30%) → `--secondary`, `--accent`.
 - Font vai → `--font-heading`, `--font-sans` (body + UI), `--font-mono` nếu cần.
 - Dark: đảo neutral, giữ hue primary; kiểm lại mọi cặp — không mặc định "đảo là đạt".
+
+## Radius theo vai (A3.7)
+
+| Vai | Token semantic cần map tới DS hiện hành |
+|---|---|
+| Card lớn | `--radius-card` |
+| Tile bên trong | `--radius-tile` |
+| Popover/drawer | `--radius-popover` |
+| Item/hàng | `--radius-item` |
+
+Inner = outer − padding, không âm; dùng token đã duyệt biểu diễn quan hệ. Đây là vai cần map, không tự phát minh biến khi DS có tên tương đương. Ghi map + snapshot commit/hash nguồn và kiểm lồng lớp.

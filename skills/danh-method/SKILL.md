@@ -23,9 +23,9 @@ Phương pháp của Danh Nguyen (Head of Design, Bigin) để một designer t�
 | 2 | Stage 4: dựng **HTML preview** + ảnh 1440/768/390 sáng/tối + DESIGN-NOTES | `design-prototype` | Duyệt preview (G1) |
 | 3 | Viết **prompt hợp đồng** cho phần thi hành (design / logic / UI tách riêng) | `prompt-contract` | Duyệt Q/A đã chốt (G2) |
 | 4 | Thi hành: một task hoặc một batch, TDD, verify theo tier, git an toàn | `execute-tasks` | Điều kiện dừng viết sẵn |
-| 5 | Điều phối subagent theo bề mặt, reviewer chỉ đọc diff | `subagent-orchestration` | Owner duyệt kỹ thuật / merge (G3) |
+| 5 | Điều phối subagent theo bề mặt, reviewer chỉ đọc diff | `subagent-orchestration` | Kiểm bằng chứng; G3 sau Stage 6 |
 | 6 | Review, truy nguyên nhân, báo cáo issue → nguyên nhân → kết quả → giải pháp | `review-report` | — |
-| 7 | Stage 5–6: audit UX, nghiệm thu trên bản chạy thật, ghi ACCEPTANCE trung thực | `design-review` | Người phụ trách sản phẩm chấp nhận |
+| 7 | Stage 5–6: audit UX, nghiệm thu trên bản chạy thật, ghi ACCEPTANCE trung thực | `design-review` | Người phụ trách sản phẩm chấp nhận; sau đó owner review G3 |
 
 Thứ tự thật: bước 0.5 làm một lần đầu dự án (và khi token đổi lớn), có thể chạy song song với bước 1 của feature đầu tiên; nhưng prototype (bước 2) phải dùng token đã duyệt.
 
@@ -36,7 +36,7 @@ Không nhảy bước. Không code trước khi có tài liệu được duyệt
 - **Cấu trúc trước bề mặt.** Đúng việc → đúng cấu trúc → đẹp. "Đẹp mà vô nghĩa" là trượt.
 - **Ràng buộc quyết, gu tranh luận.** Phá ràng buộc thì đổi thiết kế, giữ ràng buộc.
 - **Custom phải xứng đáng.** Bắt đầu từ thứ đã có (design system, component, token); không custom style ngoài thư viện.
-- **Tài liệu là nguồn sự thật, code đứng sau.** Duyệt ý tưởng bằng chữ và preview trước khi tốn tiền code.
+- **Duyệt quyết định bằng tài liệu; kiểm dữ kiện bằng Git/code thật.** Duyệt ý tưởng bằng chữ và preview trước khi tốn tiền code.
 - **Bằng chứng, không phải lời hứa.** Test, verify, ảnh chụp thật; không báo "xong" khi chưa kiểm.
 - **Phạm vi do người giao khai báo từng lượt.** Không tự mở rộng, không "tiện tay".
 
@@ -56,11 +56,9 @@ Quy trình thiết kế đầy đủ (Stage 1–6, luật 3 bước, 6×6, quy t
 
 ## 5. Nguồn sự thật khi lệch nhau
 
-1. Trạng thái do người phụ trách sản phẩm khai báo trong lượt này.
-2. Prompt trong repo spec tại HEAD (prompt đổi → bỏ bản cũ trong phiên, đọc lại từ đầu).
-3. PRD / SPEC / TASKS đã duyệt.
-4. HANDOFF (là cache, có thể cũ).
-5. Suy luận của agent (luôn ghi là *giả định*).
+Hai trục riêng (D3):
+- **Dữ kiện:** Git/code thật > snapshot prompt > HANDOFF (cache). Kiểm cả lời “xong” của người điều phối/agent. HEAD lạ → dừng, giữ nguyên việc dở và báo bằng chứng; không ép thực tế theo prompt.
+- **Quyết định/phạm vi:** người phụ trách > prompt hiện hành tại HEAD > PRD đã duyệt. Prompt đổi → bỏ bản cũ, đọc lại. Quyết định mới cập nhật PRD trước thi hành; suy luận ghi là giả định.
 
 ## 6. Quyền quyết định
 
@@ -74,3 +72,11 @@ Quy trình thiết kế đầy đủ (Stage 1–6, luật 3 bước, 6×6, quy t
 - Thiết kế/redesign: `ui-ux-pro-max` để tra cứu; giữ design system đã chốt. **Không dùng Superdesign** (bị loại vì chi phí). **Không dùng ponytail cho việc design** (từng sinh sai hướng).
 - `superpowers` dùng như **kỷ luật**, không phải menu: brainstorming (làm rõ trước khi build), executing-plans, subagent-driven-development, systematic-debugging, test-driven-development, verification-before-completion.
 - Kiểm tra: verify-kit (`execute-tasks/assets/verify-kit`).
+
+## 8. Nhịp điều hành v0.3 (findings §1, A1.2, D5)
+
+- Làm feature lõi trước bề mặt tổng hợp phụ thuộc nó; nghiên cứu thì hỏi hiện trạng chức năng trước khi chọn hướng.
+- Giao việc: “Đọc và làm theo <đường dẫn prompt>”. Prompt lưu trong repo spec.
+- Model mạnh điều phối; subagent model rẻ làm phạm vi hẹp. Chỉ chia khi glob file không chồng nhau; một writer và verifier chỉ đọc khi tiếp quản; một tác vụ nặng tại một thời điểm.
+- Báo người phụ trách tối đa **3 điểm đạt / 3 điểm cần sửa / 1 quyết định**, ưu tiên ảnh/graph và số đo thật; đây là sở thích làm việc.
+- Stage 6 đạt chưa phải merge-ready: cần `--pr` PASS, Stage 6, bằng chứng từng AC và hết blocker; sau đó còn vòng owner review G3. Không tự merge khi chưa có quyền.

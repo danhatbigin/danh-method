@@ -32,7 +32,7 @@ Ranh giới (brief phải ghi cụ thể; thiếu thì hỏi agent điều phố
 - Tạo/sửa dữ liệu chỉ trong bản sao; không liên hệ người thật.
 - **Không đổi mã sản phẩm**, không sửa `.verify/`, không chạy `--pr`. Lỗi chặn nghiệm thu → dừng, ghi rõ, báo.
 
-Kiểm (Playwright):
+Kiểm (Playwright/CDP hoặc browser đang có, không buộc cài mới):
 - Từng AC trong PRD thành bước cụ thể (role, thao tác, kết quả mong đợi); ảnh bằng chứng đặt tên theo AC vào `review-screens/acceptance-<ngày>/`.
 - Từng E và T: đếm bước thực tế; hành động chính ở mỗi điểm quyết định.
 - Đổi role: Mine, thứ tự, quyền, popover lý do, server từ chối.
@@ -40,6 +40,8 @@ Kiểm (Playwright):
 - AA ≥ 4.5:1 trên badge, pill, nút chính — đo thật.
 - Bề mặt khách hàng không lộ dữ liệu nội bộ.
 
-Trung thực: Đạt / Chưa đạt / Không kiểm được (vì sao). Không bịa PASS. Ghi `ACCEPTANCE-<ngày>.md` theo mẫu của skill.
+Trung thực: ĐẠT (test) / ĐẠT (kiểm lại được) / MỘT PHẦN / ĐẠT (có lỗi Bn) / CHƯA ĐẠT / KHÔNG KIỂM ĐƯỢC / KHÔNG CẦN SỬA (PRD + bằng chứng). Không bịa PASS. Ghi `ACCEPTANCE-<ngày>.md` theo mẫu của skill.
 
 Trả về (≤ 10 dòng): AC / E / T đạt bao nhiêu trên tổng; lỗi theo mức; ảnh ở đâu; PID đã tắt; cần quyết gì.
+
+Ghi đồng hồ giữ/tua, mốc/múi giờ và hệ quả trước nghiệm thu. Lỗi B# có mức; bảng tổng sau mỗi lượt. Stage 6 chưa đủ merge-ready: --pr PASS + AC chứng minh + hết blocker rồi owner G3. Không tự mở subagent.

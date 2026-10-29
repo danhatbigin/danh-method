@@ -15,7 +15,7 @@ Mọi biến thể đều có 12 thành phần trong SKILL.md; dưới đây là
 
 - Vai: agent code làm **trọn phần logic** một feature; UI mới **chưa** làm (design đang chạy song song).
 - "Gặp chỗ phải quyết về sản phẩm thì dừng và hỏi; không tự chọn."
-- Q chưa duyệt: "dùng mặc định đề xuất, giữ ngưỡng ở cấu hình để đổi được sau".
+- Q chưa duyệt: chỉ dùng mặc định khi người phụ trách đã uỷ quyền rõ; ghi trạng thái đề xuất, không ghi là đã chốt.
 - Nhánh/worktree riêng; chép file local không nằm trong git (`.verify/`, `CLAUDE.local.md`, `AGENTS.override.md`, `.env`), không commit chúng.
 - Phạm vi: schema/migration, quyền, service, job, view model, thông báo, test. **UI hiện tại chỉ sửa tối thiểu để không vỡ.**
 - Quy tắc: TDD; ghi trong transaction; view model đọc một lần, có test trần truy vấn; quyền qua một chỗ tập trung; code không chứa dữ liệu mẫu (demo ở file/dump ngoài repo); khoá test dùng chung; verify theo tier; dev server chỉ khi thật cần, đúng một cổng riêng, rồi tắt.
@@ -24,8 +24,8 @@ Mọi biến thể đều có 12 thành phần trong SKILL.md; dưới đây là
 
 ## ui
 
-- Vai: agent code làm **giao diện**; logic đã xong (nêu nhánh/PR); design đã duyệt.
-- "Quyết định kỹ thuật thuần: tự chọn phương án an toàn, ghi 'giả định' trong HANDOFF, đi tiếp. Chỉ dừng khi PRD mâu thuẫn hoặc có nguy cơ mất dữ liệu."
+- Vai: agent code làm **giao diện**; logic đã có task cần dùng với dòng `<TASK> pushed <hash>` (nêu nhánh/PR); design đã duyệt. UI fetch+merge nhánh logic trước mỗi task, không đợi toàn bộ logic (A6.1/D7).
+- "Quyết định kỹ thuật thuần: tự chọn phương án an toàn, ghi 'giả định' trong HANDOFF, đi tiếp. Dừng theo điều kiện prompt hợp đồng và execute-tasks: PRD chưa trả lời, việc ngoài quyền/phạm vi hoặc lỗi code còn FAIL sau ngân sách; làm tiếp phần độc lập."
 - Đọc trước: PRD → USER_FLOW → DESIGN-NOTES (mục Quyết định mới nhất) → prototype đã duyệt (`?scenario=` để mở trạng thái) → **liệt kê rõ chỗ code phải KHÁC prototype theo quyết định mới** → GUIDANCE + view model có sẵn → **code mẫu của feature đã xong** (dùng lại component chung; trùng thì tách thành chung, không copy).
 - Phạm vi: bảng WU-xx, mỗi dòng một bề mặt cụ thể.
 - Quy tắc: luật UI của project; quyền qua chỗ tập trung + server luôn kiểm; không dữ liệu mẫu; verify theo tier; **không bật dev server** (nghiệm thu là bước riêng).
@@ -45,7 +45,7 @@ Mọi biến thể đều có 12 thành phần trong SKILL.md; dưới đây là
 - "Bạn làm một mình, tuần tự, từng mục một. Không mở sub-agent." (khi các mục chạm cùng vùng code)
 - Bắt đầu: kiểm nhánh và HEAD mong đợi; working tree có thay đổi lạ → dừng và báo.
 - Mỗi mục: test chứng minh lỗi (fail trên code hiện tại) → sửa nhỏ nhất → commit `fix(<feature>): S<n> <mô tả> (<mã review>)`.
-- Verify sau nhóm Major, rồi sau nhóm Minor; FAIL → sửa 1 lần → vẫn FAIL thì dừng.
+- Verify sau nhóm Major, rồi sau nhóm Minor; FAIL → phân loại theo bảng FAIL của execute-tasks; lỗi code tính lượt theo ngân sách, vẫn FAIL thì dừng.
 - Điểm dừng bắt buộc liệt kê theo từng mục rủi ro (ví dụ migration có xoá dữ liệu, mục buộc đổi nghiệp vụ).
 - Kết thúc: push; HANDOFF có HEAD trước/sau, bảng S1–Sn (commit, tên test, kết quả), dòng `verify:`, phần chưa kiểm, giả định chờ duyệt, ghi chú cho owner; báo ≤ 8 dòng.
 
@@ -58,7 +58,7 @@ Tiếp quản tính năng <F>. Đọc theo thứ tự:
 3. <HANDOFF> (mục Trạng thái mới nhất, <giờ>)
 4. <TASKS mục …>, <PRD mục …>
 
-TRẠNG THÁI THẬT (người điều phối đã kiểm lúc tiếp quản — tin phần này hơn HANDOFF):
+SNAPSHOT ĐÃ KIỂM LÚC TIẾP QUẢN (mới hơn HANDOFF; vẫn đối chiếu Git/code thật):
 - Nhánh <…>, đã push tới <mã>. <Task> đã tick và commit. <Task> đang dở.
 - <PR nào đã merge, commit nào CHƯA vào main, HANDOFF đang ghi sai gì>
 - File đang dở chưa commit: <liệt kê> — KHÔNG reset/stash/xoá; đây là việc của phiên trước.
@@ -67,3 +67,15 @@ Làm tiếp: <đúng việc gì>, rồi <bàn giao gì>.
 ```
 
 Viết resume chỉ sau khi **tự kiểm git và PR thật** — không chép HANDOFF.
+
+## audit → sửa
+
+Lượt A chỉ đọc, lập finding ↔ PRD và phương án. Lượt B thi hành đúng finding được giao. Dùng `continuation-templates.md` B2; audit không tự cấp quyền sửa.
+
+## vá thư viện
+
+Ghi dependency/lockfile và lỗi cần vá; pin bản sửa và overrides tối thiểu, không nâng major; verify vùng ảnh hưởng + audit dependency. Buộc đổi kiến trúc/phạm vi thì hỏi.
+
+## tích hợp & dọn
+
+Ghi nhánh/PR, thứ tự merge, merge-tree với mọi nhánh song song, gate sau tích hợp, cổng cần chạy latest và tài nguyên do mình tạo. Chỉ dọn nhánh local khi prompt giao rõ và tag archive đã xác minh (D10). Không remote delete/force-delete/kill tiến trình không rõ chủ.

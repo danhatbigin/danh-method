@@ -168,6 +168,7 @@ const STUB = `${BEGIN}
 - Prompt nói khác file này: file này thắng. Prompt mô tả sai loại việc: kết quả của script (dựa trên diff) thắng.
 - Trạng thái verify có 4 giá trị: PASS, FAIL, SKIPPED, NOT_CONFIGURED. Báo cáo đúng nguyên văn dòng \`verify: …\` cuối cùng; không ghi "đã test" khi trạng thái là SKIPPED hoặc NOT_CONFIGURED, và không tự bịa test để lấp chỗ trống.
 - Gặp FAIL: phân loại theo bảng trong \`.verify/POLICY.md\`; hỏng thừa kế/test theo PRD cũ/môi trường/fixture không tính lượt code khi có bằng chứng; fixture giữ assertion. PRD chưa nói thì chốt rồi cập nhật. Lỗi code sửa theo ngân sách (mặc định một lần), còn FAIL thì dừng. Ghi nguyên văn test/assertion/message; không đổi task/agent/base/xoá log để lách. Miễn lượt vẫn chặn merge-ready nếu còn FAIL. Báo cáo cuối tối đa 5 dòng.
+- Ngoại lệ theo vai D1/D2: khi được giao workflow preview, người điều phối chạy renderer component thật, test script prototype, gắn bảng token, chụp ảnh bằng browser/CDP/Playwright đã có và viết REVIEW theo vòng. Phạm vi này không cần grant cho kiểm preview đã giao; không mở quyền full suite/e2e sản phẩm và không tự cấp grant. Agent design không chụp ảnh; agent code vẫn theo verify tier. Không tự cài công cụ mới. Chi tiết vai ở POLICY.
 ${END}`;
 
 function upsertBlock(file, { header = '' } = {}) {

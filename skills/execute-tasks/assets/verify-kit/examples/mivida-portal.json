@@ -1,0 +1,36 @@
+{
+  "extends": "node",
+  "rulesBefore": [
+    { "name": "local-noise", "kind": "skip", "skip": true, "tier": 0,
+      "match": ["**/*.log", ".mock-db/**", ".turbo/**", ".superpowers/**", ".superdesign/**", ".agents/**", ".claude/**", ".codex/**", "tools/**"] },
+    { "name": "mock-data", "kind": "logic", "tier": 2, "match": ["packages/mock-data/**"] }
+  ],
+  "tiers": {
+    "0": { "run": ["pnpm typecheck"] },
+    "1": { "run": ["pnpm lint"] },
+    "2": { "scoped": [
+      { "when": ["apps/admin/**", "packages/ui/**"], "run": "pnpm --filter ./apps/admin test" },
+      { "when": ["apps/member/**", "packages/ui/**"], "run": "pnpm --filter ./apps/member test" },
+      { "when": ["packages/ui/**"], "run": "pnpm --filter ./packages/ui test" },
+      { "when": ["packages/mock-data/**"], "tests": "packages/mock-data/tests/*.test.mjs", "relTo": "packages/mock-data",
+        "run": "pnpm --filter ./packages/mock-data exec node --conditions=react-server --import ./tests/register.mjs --test --test-concurrency=1 --test-timeout=120000 {files}",
+        "maxFiles": 12, "noMatchNote": "không có test nào khớp với file mock-data đã đổi; bộ test đầy đủ (~100 file, ~16 phút) chạy ở --pr" }
+    ] },
+    "3": { "scoped": [
+      { "when": ["packages/db/**"], "run": "pnpm db:test" }
+    ] }
+  },
+  "batch": { "run": ["pnpm build"], "note": "Dừng dev server trước khi build và bật lại sau (working-rules §4)." },
+  "pr": { "run": ["pnpm check"], "note": "Full suite (cần Docker cho DB). Dùng kèm --base origin/main để quét bí mật trên toàn bộ diff của PR." },
+  "securityExtra": [
+    { "name": "auth-admin",
+      "when": ["apps/admin/**/auth/**", "apps/admin/lib/**/auth*", "apps/admin/proxy.ts", "apps/admin/middleware.*", "apps/admin/app/api/**"],
+      "run": "pnpm --filter ./apps/admin exec node --import ../../packages/mock-data/tests/register.mjs --test tests/auth-limits.test.mjs tests/login-next.test.mjs tests/password-reset-token.test.mjs tests/webhook-auth.test.mjs" },
+    { "name": "auth-db",
+      "when": ["packages/db/**"],
+      "run": "pnpm --filter ./packages/db exec node --conditions=react-server --import ../mock-data/tests/register.mjs --test tests/member-auth.test.mjs tests/staff-auth.test.mjs" },
+    { "name": "permissions",
+      "when": ["packages/mock-data/**"],
+      "run": "pnpm --filter ./packages/mock-data exec node --conditions=react-server --import ./tests/register.mjs --test tests/consultant-permissions.test.mjs tests/private-link-tokens.test.mjs" }
+  ]
+}

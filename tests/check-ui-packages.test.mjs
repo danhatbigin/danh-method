@@ -202,9 +202,10 @@ test('--ui selection gate: strict check matches chosen target', (t) => {
   assert.equal(herouiRes.uiTarget, 'heroui');
   assert.equal(herouiRes.ready, false);
 
-  // 4. Strict check --ui both -> ready: false
+  // 4. Strict check --ui both -> rejected (invalidTarget: true, ready: false; only 1 of 2 allowed)
   const bothRes = checkUiPackages(dir, 'both');
   assert.equal(bothRes.uiTarget, 'both');
+  assert.equal(bothRes.invalidTarget, true);
   assert.equal(bothRes.ready, false);
 });
 

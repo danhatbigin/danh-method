@@ -26,32 +26,32 @@ Chạy lệnh kiểm tra khảo sát không gắn cờ `--ui`:
 node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs --root <thư-mục-dự-án> --json
 ```
 
-### Bước 2: Cổng chọn UI bắt buộc (Selection Gate)
+### Bước 2: Cổng chọn UI bắt buộc (Selection Gate — Chỉ chọn 1 trong 2)
+**Quy tắc cứng:** Mỗi dự án **chỉ dùng đúng 1 trong 2** thư viện UI (`shadcn/ui` hoặc `HeroUI`), **không được chọn cả hai**.
 Nếu `process/project.md` hoặc prompt chưa xác định rõ thư viện UI mục tiêu, agent **PHẢI DỪNG LẠI** và hỏi người dùng lựa chọn:
-> **Xác định thư viện UI cho dự án**
-> Dự án cần chỉ định rõ thư viện UI để dựng trang Token Playground (Gate G0) từ component thực tế:
+> **Xác định thư viện UI cho dự án (Chỉ chọn 1 trong 2)**
+> Dự án cần chỉ định 1 thư viện UI duy nhất để dựng trang Token Playground (Gate G0) từ component thực tế:
 > 
 > Các lựa chọn:
 > 1. **shadcn/ui (`--ui shadcn`) (Khuyên dùng)** — Phù hợp nhất với Tailwind CSS v3/v4, React Server Components và kiến trúc copy-paste linh hoạt.
 > 2. **HeroUI (`--ui heroui`)** — Hệ thống React Aria compound components hoàn chỉnh (HeroUI v3) với hệ token `--accent`/`--surface`/`--field-*`.
-> 3. **Cả hai: shadcn/ui + HeroUI (`--ui both`)** — Hỗ trợ song song cả hai thư viện trong cùng dự án.
-> 4. **Dừng lại (Báo cáo blocker)** — Không cài đặt, dừng quy trình token tại đây để chờ quyết định kỹ thuật từ chủ dự án.
+> 3. **Dừng lại (Báo cáo blocker)** — Không cài đặt, dừng quy trình token tại đây để chờ quyết định kỹ thuật từ chủ dự án.
 
 ### Bước 3: Kiểm tra nghiêm ngặt (Strict Check)
-Sau khi người dùng chọn mục tiêu (`<chosen>` = `shadcn`, `heroui`, hoặc `both`):
+Sau khi người dùng chọn mục tiêu (`<chosen>` = `shadcn` hoặc `heroui`):
 ```bash
-node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs --root <thư-mục-dự-án> --ui <chosen> --json
+node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs --root <thư-mục-dự-án> --ui <shadcn|heroui> --json
 ```
 
 ### Hậu quả của từng lựa chọn & Xử lý khi thiếu gói
-- **Nếu `ready: true`**: Quy trình tiếp tục và truyền cờ `--ui <chosen>` sang `scaffold-playground.mjs`.
+- **Nếu `ready: true`**: Quy trình tiếp tục và truyền cờ `--ui <shadcn|heroui>` sang `scaffold-playground.mjs`.
 - **Nếu `ready: false`**:
   - Agent thông báo danh sách chính xác các gói còn thiếu cho target đã chọn (`missing`).
   - Yêu cầu chủ dự án xác nhận đúng thư mục repo sản phẩm và tạo một nhánh git riêng (ví dụ `chore/install-ui-packages`). Tuyệt đối không cài trực tiếp lên nhánh chính khi chưa có kiểm soát.
   - Agent thực thi các lệnh cài đặt chính thức bên dưới.
-  - Cài đặt xong, agent chạy lại strict check `check-ui-packages.mjs --root <repo> --ui <chosen>`. Nếu `ready: true`, quy trình token mới được tiếp tục.
-  - **Tuyệt đối không tự ý âm thầm bỏ qua** thư viện người dùng đã chọn (ví dụ người dùng chọn `both` nhưng chỉ cài `shadcn`).
-- **Nếu chọn 4 (Dừng lại)**:
+  - Cài đặt xong, agent chạy lại strict check `check-ui-packages.mjs --root <repo> --ui <shadcn|heroui>`. Nếu `ready: true`, quy trình token mới được tiếp tục.
+  - **Tuyệt đối không tự ý âm thầm đổi sang bộ kia** (ví dụ người dùng chọn `heroui` nhưng dự án chỉ có `shadcn` thì vẫn phải báo `ready: false`).
+- **Nếu chọn 3 (Dừng lại)**:
   - Báo cáo rõ ràng trạng thái: *Quy trình duyệt token (Gate G0) bị khoá vì chưa có thư viện UI.*
   - **Tuyệt đối không tự ý fallback** về trang HTML thủ công (`render-token-page.mjs`) để thay thế bằng chứng duyệt G0.
 

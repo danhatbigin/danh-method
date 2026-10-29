@@ -515,29 +515,37 @@ export function checkUiPackages(targetRoot = process.cwd(), uiTarget = null) {
   const tailwind = detectTailwindVersion(root, allDeps);
   const packageManager = detectPackageManager(root);
 
-  // Available targets calculation
+  // Available targets calculation (strictly 1 of 2: shadcn OR heroui, never both)
   const availableTargets = [];
   if (shadcnInstalled) availableTargets.push('shadcn');
   if (herouiInstalled && herouiWired) availableTargets.push('heroui');
-  if (shadcnInstalled && herouiInstalled && herouiWired) availableTargets.push('both');
 
   // Ready gate evaluation based on uiTarget
   let ready = false;
+  let invalidTarget = false;
+  let error = null;
   const normalizedTarget = uiTarget ? uiTarget.toLowerCase() : null;
   if (normalizedTarget === 'shadcn') {
     ready = shadcnInstalled;
   } else if (normalizedTarget === 'heroui') {
     ready = Boolean(herouiInstalled && herouiWired);
-  } else if (normalizedTarget === 'both') {
-    ready = Boolean(shadcnInstalled && herouiInstalled && herouiWired);
+  } else if (normalizedTarget !== null) {
+    ready = false;
+    invalidTarget = true;
+    error = 'Chỉ được chọn 1 trong 2 thư viện UI: --ui shadcn hoặc --ui heroui (không được chọn cả 2).';
   } else {
-    // Discovery scan (uiTarget === null)
-    ready = Boolean(shadcnInstalled || (herouiInstalled && herouiWired));
+    // Discovery scan (uiTarget === null): ready only when exactly 1 library is installed; if both exist, user must choose 1 via --ui
+    ready = availableTargets.length === 1;
+    if (availableTargets.length > 1) {
+      error = 'Dự án đang có cả shadcn/ui và HeroUI. Vui lòng chọn đúng 1 thư viện qua --ui shadcn hoặc --ui heroui.';
+    }
   }
 
   return {
     uiTarget: normalizedTarget,
     availableTargets,
+    invalidTarget,
+    ...(error ? { error } : {}),
     shadcn: {
       declared: shadcnDeclared,
       installed: shadcnInstalled,

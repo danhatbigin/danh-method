@@ -32,23 +32,23 @@ Cổng kiểm tra bắt buộc (Hard Gate): Không cho phép tạo token hay d�
    ```
    Lệnh trả về hiện trạng thư viện trong dự án (`shadcn` components count, `heroui` version/components count, `availableTargets`).
 
-2. **Mandatory Selection Gate (Cổng chọn thư viện UI)**:
-   Nếu `process/project.md` hoặc prompt của người dùng chưa chỉ định rõ thư viện UI dự án sử dụng, agent **BẮT BUỘC** hiển thị tóm tắt kết quả scan và hỏi người dùng chọn 1 trong 3 phương án:
+2. **Mandatory Selection Gate (Cổng chọn 1 trong 2 thư viện UI)**:
+   **Quy tắc cứng:** Mỗi dự án **chỉ được chọn đúng 1 trong 2** thư viện UI (`shadcn/ui` hoặc `HeroUI`), **tuyệt đối không chọn cả hai**.
+   Nếu `process/project.md` hoặc prompt của người dùng chưa chỉ định rõ thư viện UI dự án sử dụng, agent **BẮT BUỘC** hiển thị tóm tắt kết quả scan và hỏi người dùng chọn **1 trong 2**:
    - `shadcn/ui` (`--ui shadcn`) — Phù hợp nhất với Tailwind CSS v3/v4, copy-paste components linh hoạt.
    - `HeroUI` (`--ui heroui`) — Hệ thống React Aria compound components hoàn chỉnh kèm tokens `--accent`/`--surface`/`--field-*`.
-   - `Cả hai: shadcn/ui + HeroUI` (`--ui both`) — Hỗ trợ cả hai thư viện chạy song song trong cùng dự án.
 
-3. **Chạy kiểm tra nghiêm ngặt (Strict Check)** theo lựa chọn:
+3. **Chạy kiểm tra nghiêm ngặt (Strict Check)** theo lựa chọn (`<chosen>` = `shadcn` hoặc `heroui`):
    ```bash
-   node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs --root <thư-mục-dự-án> --ui <chosen> --json
+   node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs --root <thư-mục-dự-án> --ui <shadcn|heroui> --json
    ```
-   - **Nếu `ready: false`** (ví dụ: người dùng chọn `both` hoặc `heroui` nhưng dự án mới chỉ có `shadcn`) → **DỪNG LẠI NGAY LẬP TỨC (STOP)**.
+   - **Nếu `ready: false`** (ví dụ: người dùng chọn `heroui` nhưng dự án mới chỉ có `shadcn`, hoặc chưa cài gói nào) → **DỪNG LẠI NGAY LẬP TỨC (STOP)**.
      - Báo cáo chính xác gói còn thiếu (`missing`).
-     - Xin phép người dùng cài đặt theo `references/install-ui-packages.md`.
-     - **Tuyệt đối không tự ý âm thầm bỏ qua** thư viện người dùng đã chọn.
+     - Xin phép người dùng cài đặt đúng bộ đã chọn theo `references/install-ui-packages.md`.
+     - **Tuyệt đối không tự ý âm thầm đổi sang bộ kia** hoặc dùng song song cả hai.
      - Người dùng đồng ý → cài đặt trên một nhánh git riêng, sau đó chạy lại strict check.
      - Người dùng từ chối → báo cáo blocker cho chủ dự án. Tuyệt đối không fallback về trang HTML thủ công.
-   - **Nếu `ready: true`** → ghi nhận lựa chọn vào `process/project.md`, chuyển sang mục 1 và truyền cờ `--ui <chosen>` cho `scaffold-playground.mjs`.
+   - **Nếu `ready: true`** → ghi nhận lựa chọn vào `process/project.md`, chuyển sang mục 1 và truyền cờ `--ui <shadcn|heroui>` cho `scaffold-playground.mjs`.
 
 ## 1. Xác định nguồn token
 
@@ -78,7 +78,7 @@ Bằng chứng duyệt Gate G0 chính thức là **Token Playground**, được 
 ```bash
 node <plugin danh-method>/skills/design-tokens/scripts/scaffold-playground.mjs \
   --root <thư mục dự án> \
-  --ui <shadcn|heroui|both> \
+  --ui <shadcn|heroui> \
   --css <đường dẫn file tokens.css>
 ```
 Chi tiết cấu trúc và cách vận hành xem tại `references/token-playground.md`.

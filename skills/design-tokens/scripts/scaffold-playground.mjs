@@ -1121,6 +1121,13 @@ export function ShadcnPreview() {
 export function runScaffold(argv = process.argv) {
   const args = parseArgs(argv);
 
+  if (args.ui && args.ui !== 'shadcn' && args.ui !== 'heroui') {
+    console.error(
+      `Mục tiêu UI không hợp lệ "${args.ui}". Chỉ được chọn 1 trong 2 thư viện UI: --ui shadcn hoặc --ui heroui (không được chọn cả 2).`
+    );
+    process.exit(1);
+  }
+
   // 1. Kiểm tra tính sẵn sàng của thư viện UI
   let checkResult;
   try {
@@ -1131,28 +1138,27 @@ export function runScaffold(argv = process.argv) {
   }
 
   if (!checkResult || !checkResult.ready) {
-    const targetMsg = args.ui ? `cho mục tiêu UI "${args.ui}"` : '(cần cài đặt shadcn/ui hoặc HeroUI)';
+    const targetMsg = args.ui ? `cho mục tiêu UI "${args.ui}"` : '(cần chọn 1 trong 2: --ui shadcn hoặc --ui heroui)';
     console.error(
-      `Dự án chưa sẵn sàng thư viện UI ${targetMsg}. Vui lòng chạy check-ui-packages để kiểm tra.`
+      checkResult?.error || `Dự án chưa sẵn sàng thư viện UI ${targetMsg}. Vui lòng chạy check-ui-packages để kiểm tra.`
     );
     process.exit(1);
   }
 
-  // Determine which UI libraries to enable based on args.ui
+  // Determine which single UI library to enable (strictly 1 of 2: shadcn OR heroui)
   let enableShadcn = false;
   let enableHeroUI = false;
   if (args.ui === 'shadcn') {
     enableShadcn = true;
-    enableHeroUI = false;
   } else if (args.ui === 'heroui') {
-    enableShadcn = false;
     enableHeroUI = true;
-  } else if (args.ui === 'both') {
+  } else if (checkResult.shadcn?.installed && !checkResult.heroui?.installed) {
     enableShadcn = true;
+  } else if (checkResult.heroui?.installed && !checkResult.shadcn?.installed) {
     enableHeroUI = true;
   } else {
-    enableShadcn = Boolean(checkResult.shadcn?.installed);
-    enableHeroUI = Boolean(checkResult.heroui?.installed);
+    console.error('Chỉ được chọn 1 trong 2 thư viện UI: vui lòng truyền rõ --ui shadcn hoặc --ui heroui.');
+    process.exit(1);
   }
 
   // 2. Kiểm tra tồn tại thư mục đích (nếu không có --force)

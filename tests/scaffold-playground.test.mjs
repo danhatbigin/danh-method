@@ -197,12 +197,13 @@ test('--ui shadcn flag only enables shadcn in manifest and preview', () => {
   assert.equal(manifest.ui.heroui.installed, false);
 });
 
-test('--ui both flag fails when only shadcn is installed', () => {
-  const { dir, run } = setupFixture('ui-both-missing-heroui', true);
+test('--ui both flag is rejected because only 1 of 2 (shadcn or heroui) is allowed', () => {
+  const { dir, run } = setupFixture('ui-both-rejected', true);
   const outDir = path.join(dir, 'playground-both');
   const res = run(['--out-dir', 'playground-both', '--ui', 'both']);
 
-  assert.notEqual(res.status, 0, 'Must exit non-zero when target both is not met');
+  assert.notEqual(res.status, 0, 'Must exit non-zero when --ui both is passed');
+  assert.match(res.stderr, /Chỉ được chọn 1 trong 2/i);
   assert.equal(fs.existsSync(outDir), false, 'Nothing should be written on failure');
 });
 

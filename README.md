@@ -57,8 +57,8 @@ Thư mục thêm: `research/` (khảo sát cách làm việc gốc, 22/10/2026),
 
 ## Thay đổi v0.4.0
 
-- **Cổng chọn & kiểm package UI:** `design-tokens` chạy `scripts/check-ui-packages.mjs` quét hiện trạng (shadcn `.tsx`, HeroUI v2/v3 compound anatomy + `@heroui/styles`), liệt kê cho người dùng chọn bộ UI (`shadcn` | `heroui` | `both`) rồi kiểm `check-ui-packages.mjs --ui <chosen>`. Bộ đã chọn chưa cài thật → dừng, hỏi xin phép cài (`references/install-ui-packages.md`), không sinh token hay trang duyệt.
-- **Token playground (G0):** `scripts/scaffold-playground.mjs --ui <chosen>` chép trang kiểu ui.shadcn.com/create vào project: panel chỉnh màu (kèm color picker)/bo góc/font/light-dark/khoảng cách/bóng, tự trích xuất biến CSS dự án + `@heroui/styles`, sinh động preview component shadcn/ui và compound component HeroUI thật, AA trực tiếp, export/import CSS/JSON/MD có hash nguồn. Build bằng tooling của project. `render-token-page.mjs` hạ xuống bảng tra phụ lục.
+- **Cổng chọn & kiểm package UI (1 trong 2):** `design-tokens` chạy `scripts/check-ui-packages.mjs` quét hiện trạng (shadcn `.tsx`, HeroUI v2/v3 compound anatomy + `@heroui/styles`), liệt kê cho người dùng **chọn đúng 1 trong 2** bộ UI (`shadcn` hoặc `heroui`, không dùng cả hai) rồi kiểm `check-ui-packages.mjs --ui <shadcn|heroui>`. Bộ đã chọn chưa cài thật → dừng, hỏi xin phép cài (`references/install-ui-packages.md`), không sinh token hay trang duyệt.
+- **Token playground (G0):** `scripts/scaffold-playground.mjs --ui <shadcn|heroui>` chép trang kiểu ui.shadcn.com/create vào project: panel chỉnh màu (kèm color picker)/bo góc/font/light-dark/khoảng cách/bóng, tự trích xuất biến CSS dự án + `@heroui/styles`, sinh động preview component thật của bộ UI đã chọn (shadcn/ui hoặc compound HeroUI), AA trực tiếp, export/import CSS/JSON/MD có hash nguồn. Build bằng tooling của project. `render-token-page.mjs` hạ xuống bảng tra phụ lục.
 - **Superpowers là plugin đi kèm:** hook `check-superpowers` lúc mở phiên, xin phép cài cùng lượt với ui-ux-pro-max; map skill Superpowers theo stage (`skills/danh-method/references/install-superpowers.md`).
 
 ## Thay đổi v0.3.0

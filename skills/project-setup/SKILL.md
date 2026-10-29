@@ -14,7 +14,7 @@ Dùng công cụ hỏi lựa chọn (AskUserQuestion nếu có). Gom thành mộ
 - Tên sản phẩm, khách hàng, mô tả 1 câu vấn đề đang giải.
 - Người làm: tên, vai (**designer** / **developer** / cả hai), ngôn ngữ trao đổi, có muốn agent tự chạy lệnh không.
 - Repo code đã có chưa, nằm đâu; repo spec đặt ở đâu (mặc định cạnh repo code: `<tên>-spec`).
-- Stack (framework, DB, test runner), thư viện UI mục tiêu (shadcn/ui / HeroUI / cả hai), file token.
+- Stack (framework, DB, test runner), thư viện UI mục tiêu (**chỉ chọn 1 trong 2**: `shadcn/ui` hoặc `HeroUI`, không dùng cả hai), file token.
 - Owner kỹ thuật (vai trò, không cần tên), luật nhánh (mặc định: mỗi feature một nhánh từ `main`, PR draft).
 - Công cụ agent đang dùng (Claude, Codex, Antigravity, AionUI…).
 
@@ -51,7 +51,7 @@ Viết `process/operator-<tên>.md` theo `references/operator-profile-template.m
 
 ## 4. Project config
 
-Viết `process/project.md` theo `references/project-config-template.md`: đường dẫn repo, stack, thư viện UI mục tiêu (shadcn/ui, HeroUI hoặc cả hai) + file token, lệnh kiểm tra, cổng dev được dùng / cấm đụng, luật nhánh, owner, ngôn ngữ UI, nơi để dữ liệu ngoài repo (dump, fixture).
+Viết `process/project.md` theo `references/project-config-template.md`: đường dẫn repo, stack, thư viện UI mục tiêu (chỉ 1 trong 2: `shadcn/ui` hoặc `HeroUI`) + file token, lệnh kiểm tra, cổng dev được dùng / cấm đụng, luật nhánh, owner, ngôn ngữ UI, nơi để dữ liệu ngoài repo (dump, fixture).
 
 ## 5. File trỏ cục bộ trong repo code (không commit)
 

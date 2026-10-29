@@ -19,7 +19,7 @@ Trước đây, trang xem trước token tĩnh (`render-token-page.mjs`) chỉ h
   - Khoảng cách & Mật độ: `--spacing` hoặc mật độ giao diện.
 - **Canvas xem trước bên phải:** Render **COMPONENT THẬT 100%**:
   - Không dùng markup giả lập hay component vẽ tay.
-  - Tích hợp cả hai thư viện **shadcn/ui** (từ alias `@/components/ui/*`) và **HeroUI** (từ `@heroui/react`) nếu dự án có cài đặt.
+  - Tích hợp đúng **1 thư viện UI duy nhất** mà dự án đã chọn: **shadcn/ui** (`--ui shadcn`, từ alias `@/components/ui/*`) **HOẶC** **HeroUI** (`--ui heroui`, compound components từ `@heroui/react`), không dùng cả hai.
   - Bao gồm: Bộ card Dashboard KPI, form hoàn chỉnh (input, select, checkbox, switch, slider), các biến thể và kích cỡ button, badges/chips, tabs, bảng dữ liệu (table), dialog và dropdown triggers, alerts thông báo, thang kiểu chữ và bảng đo độ tương phản WCAG 2.1 AA trực tiếp.
 - **Cập nhật động (Live DOM Update):** Thay đổi giá trị trên control sẽ áp dụng ngay tức thì vào biến CSS `:root` và `.dark`. Tuyệt đối **không phát minh token mới** nằm ngoài danh mục CSS đã khai báo.
 - **Thanh công cụ Toolbar:**
@@ -52,6 +52,7 @@ Sử dụng script `scaffold-playground.mjs`:
 ```bash
 node skills/design-tokens/scripts/scaffold-playground.mjs \
   --root <thư-mục-dự-án> \
+  --ui <shadcn|heroui> \
   --css <đường-dẫn-file-token.css> \
   [--css <đường-dẫn-file-token-khác.css>] \
   [--out-dir design-system/playground] \
@@ -60,6 +61,7 @@ node skills/design-tokens/scripts/scaffold-playground.mjs \
 
 ### Các đối số:
 - `--root <path>`: Thư mục gốc của dự án sản phẩm (mặc định: thư mục hiện tại).
+- `--ui <shadcn|heroui>`: Bắt buộc chỉ chọn 1 trong 2 thư viện UI (`shadcn` hoặc `heroui`, không chọn cả hai).
 - `--css <path>`: Đường dẫn file CSS chứa khai báo token (có thể lặp lại nhiều lần theo thứ tự import).
 - `--out-dir <dir>`: Thư mục lưu mã nguồn Playground bên trong dự án (mặc định: `design-system/playground`).
 - `--dry`: Chạy thử, in báo cáo kiểm tra và không ghi file.

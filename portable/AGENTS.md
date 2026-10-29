@@ -97,3 +97,13 @@ Dữ kiện: Git/code thật → snapshot prompt → HANDOFF (cache); HEAD lạ 
 ## 10. Chốt công cụ và token round-trip (D1/D2/D4 · 29/10)
 
 Superpowers cho kỷ luật thi hành; UI UX Pro Max cho tra cứu/kiểm thiết kế. Prototype dùng component thật, thông số chỉ đổi trong preview cho tới khi duyệt. Bản MD/JSON có schemaVersion, source id/hash, token allowlist light/dark; import từ nguồn khác hoặc thiếu token thì từ chối. Điều phối sở hữu ảnh/REVIEW, giao task riêng nạp token được duyệt vào DS, dựng lại trang token và kiểm component/caller dùng chung. Không tự ghi token nguồn từ preview.
+
+## 11. Tự động nhận diện giai đoạn & Đề xuất Subagent kèm Model tiết kiệm
+
+- Chạy `node skills/danh-method/scripts/detect-stage.mjs [--spec <docs>] [--code <codeRoot>] [--feature <tên>] [--json]` để tự động nhận diện giai đoạn hiện tại (Stage 0, 0.5, 1–3, 4A, 4B, 4C, 5, 6, COMPLETE) dựa trên trạng thái thật của Git và tài liệu trên đĩa.
+- Tại các giai đoạn thi hành cần subagent (Stage 4A, 4C, 5, 6): coordinator **tuyệt đối không âm thầm spawn subagent**.
+- Luôn chủ động xuất bảng đề xuất phân công: vai trò subagent, tác vụ hẹp, vùng file sở hữu (glob cô lập), đề xuất mặc định **model tiết kiệm** (`flash` / `haiku` / `mini`) để bảo toàn quota/chi phí, kèm lý do.
+- Dừng lại chờ người dùng xác nhận 1 trong 3 lựa chọn:
+  1. **Đồng ý**: Kích hoạt subagent với model tiết kiệm đã đề xuất.
+  2. **Đổi model**: Chọn model mạnh (`pro` / `sonnet` / `inherit`) cho task phức tạp.
+  3. **Chạy inline**: Không mở subagent, coordinator trực tiếp thi hành tuần tự trong phiên.

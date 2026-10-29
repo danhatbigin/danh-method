@@ -5,7 +5,7 @@ description: Orchestrates a Danh Method feature from one main agent that dispatc
 
 # Điều phối bằng subagent
 
-Agent chính (phiên đang nói chuyện với người phụ trách sản phẩm) là **người điều phối** — vai "Cowork" ở MiVida: viết tài liệu, viết brief, giao việc, kiểm kết quả, báo cáo. Subagent làm việc tay chân trong phạm vi hẹp và trả kết quả về. Thay cho mô hình nhiều agent độc lập (AionUI teams) vốn tốn công đồng bộ.
+Agent chính (phiên đang nói chuyện với người phụ trách sản phẩm) là **người điều phối** — vai điều phối sản phẩm (Lead Coordinator): viết tài liệu, viết brief, giao việc, kiểm kết quả, báo cáo. Subagent làm việc tay chân trong phạm vi hẹp và trả kết quả về. Thay cho mô hình nhiều agent độc lập vốn tốn công đồng bộ.
 
 ## 1. Khi nào chia, khi nào không
 
@@ -79,3 +79,25 @@ Tích hợp → merge-tree mọi nhánh song song → verify + AC → Stage 6 �
 ## 9. Điều phối preview và vòng duyệt token (D1/D2 chốt 29/10)
 
 Người điều phối chạy renderer component thật, kiểm hash nguồn/CSS/token; gắn bảng thông số nếu cần, chạy test prototype rồi chụp ảnh 1440/768/390 × light/dark và viết REVIEW R1…Rn. Agent design không chụp ảnh, không viết REVIEW thay điều phối. Đưa bản token MD/JSON xuất từ preview để người phụ trách duyệt; giao task cập nhật DS riêng sau duyệt, dựng lại token page/component preview và kiểm nơi dùng chung. Không dùng HTML dựng tay giả component thật.
+
+## 10. Tự động nhận diện giai đoạn & Đề xuất Subagent kèm Model tiết kiệm
+
+### Tự động nhận diện (detect-stage)
+Trước khi quyết định hành động tiếp theo hoặc mở subagent, người điều phối chạy script kiểm tra trạng thái thực tế:
+```bash
+node skills/danh-method/scripts/detect-stage.mjs [--spec <thư-mục-docs>] [--code <thư-mục-code>] [--feature <tên>] [--json]
+```
+Script sẽ quét cây thư mục, file cấu hình, trạng thái PRD, prototype HTML, REVIEW G1, task hash và báo cáo nghiệm thu để trả về đúng giai đoạn hiện tại (Stage 0, 0.5, 1–3, 4A, 4B, 4C, 5, 6, COMPLETE).
+
+### Giao thức Đề xuất Chủ động (Proactive Proposal Protocol)
+**QUY TẮC BẮT BUỘC:** Người điều phối **KHÔNG BAO GIỜ** âm thầm gọi `invoke_subagent` hay dispatch subagent khi chưa có sự xác nhận của người dùng.
+
+1. Khi `detect-stage.mjs` phát hiện cần chạy subagent (Stage 4A, 4C, 5, 6), người điều phối phải lập tức xuất bảng đề xuất theo mẫu `references/spawn-proposal-template.md`:
+   - Liệt kê các subagent cần mở, tác vụ hẹp tương ứng và glob sở hữu cô lập.
+   - Luôn đề xuất mặc định **model tiết kiệm** (`flash` / `haiku` / `mini`) cho subagent để tiết kiệm chi phí và hạn mức (quota).
+   - Nêu rõ lý do chọn model (nhiệm vụ bounded, có prompt contract chặt chẽ, tuân thủ template).
+2. Dừng turn và chờ người dùng phản hồi 1 trong 3 phương án:
+   - **[1] Đồng ý**: Chấp thuận dispatch với model tiết kiệm đã đề xuất.
+   - **[2] Chọn model khác**: Người dùng yêu cầu model mạnh (`pro` / `sonnet` / `inherit`) cho task khó hoặc khi cần phân tích sâu.
+   - **[3] Chạy inline**: Không mở subagent, người điều phối tự tay thực hiện tuần tự trong phiên hiện tại.
+3. Chỉ sau khi người dùng phản hồi chấp thuận, người điều phối mới sinh brief và gọi `invoke_subagent` với đúng model được duyệt.

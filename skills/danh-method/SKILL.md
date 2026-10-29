@@ -96,3 +96,22 @@ Hai trục riêng (D3):
 - Model mạnh điều phối; subagent model rẻ làm phạm vi hẹp. Chỉ chia khi glob file không chồng nhau; một writer và verifier chỉ đọc khi tiếp quản; một tác vụ nặng tại một thời điểm.
 - Báo người phụ trách tối đa **3 điểm đạt / 3 điểm cần sửa / 1 quyết định**, ưu tiên ảnh/graph và số đo thật; đây là sở thích làm việc.
 - Stage 6 đạt chưa phải merge-ready: cần `--pr` PASS, Stage 6, bằng chứng từng AC và hết blocker; sau đó còn vòng owner review G3. Không tự merge khi chưa có quyền.
+
+## 9. Tự động nhận diện giai đoạn & Đề xuất Subagent (detect-stage)
+
+Khi bắt đầu một phiên làm việc hoặc khi người dùng hỏi *"đang ở bước nào"*, *"làm gì tiếp theo"*, *"chạy command nào"*:
+1. Chạy công cụ nhận diện tự động:
+   ```bash
+   node skills/danh-method/scripts/detect-stage.mjs [--spec <docs>] [--code <codeRoot>] [--feature <tên>] [--json]
+   ```
+2. Công cụ quét cây thư mục thật để xác định chính xác giai đoạn:
+   - **Stage 0**: Setup dự án & operator profile (`process/project.md`, `process/operator-*.md`).
+   - **Stage 0.5**: Chốt Design Tokens & Gate G0 trên Token Playground (`design-system/TOKENS-NOTES.md`).
+   - **Stage 1–3**: Đặc tả Feature PRD / USER_FLOW / GUIDANCE / TASKS.
+   - **Stage 4A**: Thi hành song song Prototype HTML (`design-prototyper`) và Logic Backend (`logic-implementer`).
+   - **Stage 4B**: Điều phối viên chụp ảnh nghiệm thu Preview và chốt Gate G1 (`REVIEW.md`).
+   - **Stage 4C**: Ráp giao diện UI hoàn chỉnh (`ui-implementer`).
+   - **Stage 5**: Đánh giá mã nguồn chỉ đọc (`code-reviewer`).
+   - **Stage 6**: Nghiệm thu trung thực trình duyệt trên DB bản sao (`acceptance-tester`).
+   - **COMPLETE**: Đã hoàn tất mọi bước, chờ owner duyệt Gate G3 và merge.
+3. Khi ở các giai đoạn cần subagent (4A, 4C, 5, 6), coordinator **phải chủ động đề xuất** subagent kèm **model tiết kiệm** (`flash` / `haiku` / `mini`) và chờ người dùng chọn/duyệt trước khi spawn (chi tiết tại `skills/subagent-orchestration/SKILL.md`).

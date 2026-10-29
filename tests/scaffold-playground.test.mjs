@@ -11,7 +11,7 @@ const cli = path.join(repo, 'skills/design-tokens/scripts/scaffold-playground.mj
 const scratch = path.join(repo, '..', '.v04-checks', 'test-fixtures');
 fs.mkdirSync(scratch, { recursive: true });
 
-function setupFixture(name, ready = true) {
+function setupFixture(name, ready = true, customCheckResult = null) {
   const dir = fs.mkdtempSync(path.join(scratch, `${name}-`));
 
   // Create package.json
@@ -47,7 +47,7 @@ function setupFixture(name, ready = true) {
   fs.mkdirSync(compDir, { recursive: true });
   fs.writeFileSync(path.join(compDir, 'button.tsx'), 'export const Button = () => <button />;\n', 'utf8');
 
-  const checkResult = ready
+  const checkResult = customCheckResult || (ready
     ? {
         shadcn: {
           declared: true,
@@ -83,7 +83,7 @@ function setupFixture(name, ready = true) {
         tailwind: 4,
         packageManager: 'npm',
         ready: false,
-      };
+      });
 
   return {
     dir,
@@ -184,4 +184,113 @@ test('--dry runs check and extraction without writing any files', () => {
   assert.equal(res.status, 0, res.stderr);
   assert.match(res.stdout, /\[DRY RUN\]/);
   assert.equal(fs.existsSync(outDir), false, 'Dry run must not create outDir');
+});
+
+test('--ui shadcn flag only enables shadcn in manifest and preview', () => {
+  const { dir, run } = setupFixture('ui-shadcn-only', true);
+  const outDir = path.join(dir, 'playground-shadcn');
+  const res = run(['--out-dir', 'playground-shadcn', '--ui', 'shadcn']);
+
+  assert.equal(res.status, 0, res.stderr);
+  const manifest = JSON.parse(fs.readFileSync(path.join(outDir, 'manifest.json'), 'utf8'));
+  assert.equal(manifest.ui.shadcn.installed, true);
+  assert.equal(manifest.ui.heroui.installed, false);
+});
+
+test('--ui both flag fails when only shadcn is installed', () => {
+  const { dir, run } = setupFixture('ui-both-missing-heroui', true);
+  const outDir = path.join(dir, 'playground-both');
+  const res = run(['--out-dir', 'playground-both', '--ui', 'both']);
+
+  assert.notEqual(res.status, 0, 'Must exit non-zero when target both is not met');
+  assert.equal(fs.existsSync(outDir), false, 'Nothing should be written on failure');
+});
+
+test('--ui heroui extracts HeroUI variables and generates compound component preview', () => {
+  const dir = fs.mkdtempSync(path.join(scratch, 'heroui-scaffold-'));
+
+  fs.writeFileSync(
+    path.join(dir, 'package.json'),
+    JSON.stringify({ name: 'heroui-app', version: '2.0.0' }, null, 2)
+  );
+
+  // Mock variables.css
+  const stylesDir = path.join(dir, 'node_modules', '@heroui', 'styles', 'dist', 'themes', 'default');
+  fs.mkdirSync(stylesDir, { recursive: true });
+  const heroVariablesCss = `:root {
+  --accent: oklch(0.62 0.19 253);
+  --accent-foreground: #ffffff;
+  --surface: #ffffff;
+  --surface-foreground: #09090b;
+  --field-radius: 0.75rem;
+}
+.dark {
+  --surface: #121212;
+  --surface-foreground: #fafafa;
+}
+`;
+  const heroVariablesPath = path.join(stylesDir, 'variables.css');
+  fs.writeFileSync(heroVariablesPath, heroVariablesCss, 'utf8');
+
+  // Project CSS
+  const projectCss = `:root { --custom-color: #10b981; } .dark { --custom-color: #059669; }`;
+  const cssPath = path.join(dir, 'project.css');
+  fs.writeFileSync(cssPath, projectCss, 'utf8');
+
+  const checkResult = {
+    shadcn: { declared: false, installed: false, components: [], missing: ['components.json'] },
+    heroui: {
+      declared: true,
+      installed: true,
+      version: '3.2.7',
+      majorVersion: 3,
+      mode: 'monolithic',
+      stylesCssPath: heroVariablesPath,
+      components: ['card', 'checkbox', 'switch', 'slider', 'tabs', 'table', 'alert', 'modal', 'dropdown'],
+      anatomy: {
+        card: ['Root', 'Header', 'Title', 'Description', 'Content', 'Footer'],
+        checkbox: ['Root', 'Content', 'Control', 'Indicator'],
+      },
+      wired: true,
+      missing: [],
+    },
+    framework: 'vite',
+    tailwind: 4,
+    packageManager: 'npm',
+    ready: true,
+  };
+
+  const outDir = path.join(dir, 'playground-hero');
+  const res = spawnSync(
+    process.execPath,
+    [cli, '--root', dir, '--css', cssPath, '--out-dir', 'playground-hero', '--ui', 'heroui'],
+    {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        DANH_CHECK_UI_RESULT: JSON.stringify(checkResult),
+      },
+    }
+  );
+
+  assert.equal(res.status, 0, res.stderr);
+  const manifest = JSON.parse(fs.readFileSync(path.join(outDir, 'manifest.json'), 'utf8'));
+  assert.equal(manifest.ui.heroui.installed, true);
+  assert.equal(manifest.ui.shadcn.installed, false);
+  // Verify HeroUI tokens extracted from variables.css
+  assert.equal(manifest.tokens.light['--accent'], 'oklch(0.62 0.19 253)');
+  assert.equal(manifest.tokens.light['--field-radius'], '0.75rem');
+  assert.equal(manifest.tokens.dark['--surface'], '#121212');
+
+  // Verify preview/HeroUIPreview.tsx generated with compound components
+  const heroPreviewCode = fs.readFileSync(path.join(outDir, 'preview', 'HeroUIPreview.tsx'), 'utf8');
+  assert.match(heroPreviewCode, /<Alert status="accent">/);
+  assert.match(heroPreviewCode, /<Card\.Header/);
+  assert.match(heroPreviewCode, /<Checkbox/);
+  assert.match(heroPreviewCode, /<Checkbox\.Control>/);
+  assert.match(heroPreviewCode, /<Switch\.Control>/);
+  assert.match(heroPreviewCode, /<Slider\.Track>/);
+  assert.match(heroPreviewCode, /<Tabs\.ListContainer>/);
+  assert.match(heroPreviewCode, /<Table\.ScrollContainer>/);
+  assert.match(heroPreviewCode, /<Modal\.Trigger>/);
 });

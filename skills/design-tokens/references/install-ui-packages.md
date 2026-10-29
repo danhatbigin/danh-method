@@ -16,24 +16,41 @@ Trước đây, khi chưa cài đặt thư viện UI thật, agent đã tự sin
 
 ---
 
-## 2. Cách xin phép người dùng (Protocol)
+## 2. Cách xin phép người dùng & Cổng chọn UI (Protocol)
 
-Khi `node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs` báo `ready: false`, agent **PHẢI DỪNG LẠI** và đặt một câu hỏi lựa chọn duy nhất tới người dùng:
+Quy trình gồm 3 bước:
 
-> **Thư viện UI chưa được cài đặt trong dự án.**
-> Để dựng trang Token Playground (Gate G0) từ component thực tế, dự án cần cài đặt thư viện UI (shadcn/ui hoặc HeroUI). Bạn có đồng ý cài đặt không?
+### Bước 1: Khảo sát hiện trạng (Discovery Scan)
+Chạy lệnh kiểm tra khảo sát không gắn cờ `--ui`:
+```bash
+node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs --root <thư-mục-dự-án> --json
+```
+
+### Bước 2: Cổng chọn UI bắt buộc (Selection Gate)
+Nếu `process/project.md` hoặc prompt chưa xác định rõ thư viện UI mục tiêu, agent **PHẢI DỪNG LẠI** và hỏi người dùng lựa chọn:
+> **Xác định thư viện UI cho dự án**
+> Dự án cần chỉ định rõ thư viện UI để dựng trang Token Playground (Gate G0) từ component thực tế:
 > 
 > Các lựa chọn:
-> 1. **Cài đặt shadcn/ui (Khuyên dùng)** — Phù hợp nhất với Tailwind CSS v3/v4, React Server Components và kiến trúc copy-paste linh hoạt.
-> 2. **Cài đặt HeroUI** — Phù hợp với ứng dụng cần hệ thống component hoàn chỉnh sẵn có kèm hiệu ứng framer-motion.
-> 3. **Cài đặt cả hai** — Hỗ trợ cả hai hệ thống nếu sản phẩm sử dụng song song.
+> 1. **shadcn/ui (`--ui shadcn`) (Khuyên dùng)** — Phù hợp nhất với Tailwind CSS v3/v4, React Server Components và kiến trúc copy-paste linh hoạt.
+> 2. **HeroUI (`--ui heroui`)** — Hệ thống React Aria compound components hoàn chỉnh (HeroUI v3) với hệ token `--accent`/`--surface`/`--field-*`.
+> 3. **Cả hai: shadcn/ui + HeroUI (`--ui both`)** — Hỗ trợ song song cả hai thư viện trong cùng dự án.
 > 4. **Dừng lại (Báo cáo blocker)** — Không cài đặt, dừng quy trình token tại đây để chờ quyết định kỹ thuật từ chủ dự án.
 
-### Hậu quả của từng lựa chọn
-- **Nếu chọn 1, 2 hoặc 3**:
-  1. Yêu cầu chủ dự án xác nhận đúng thư mục repo sản phẩm và tạo một nhánh git riêng (ví dụ `chore/install-ui-packages`). Tuyệt đối không cài trực tiếp lên nhánh chính khi chưa có kiểm soát.
-  2. Agent thực thi các lệnh cài đặt chính thức bên dưới.
-  3. Cài đặt xong, agent chạy lại `check-ui-packages.mjs --root <repo>`. Nếu `ready: true`, quy trình token mới được tiếp tục.
+### Bước 3: Kiểm tra nghiêm ngặt (Strict Check)
+Sau khi người dùng chọn mục tiêu (`<chosen>` = `shadcn`, `heroui`, hoặc `both`):
+```bash
+node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs --root <thư-mục-dự-án> --ui <chosen> --json
+```
+
+### Hậu quả của từng lựa chọn & Xử lý khi thiếu gói
+- **Nếu `ready: true`**: Quy trình tiếp tục và truyền cờ `--ui <chosen>` sang `scaffold-playground.mjs`.
+- **Nếu `ready: false`**:
+  - Agent thông báo danh sách chính xác các gói còn thiếu cho target đã chọn (`missing`).
+  - Yêu cầu chủ dự án xác nhận đúng thư mục repo sản phẩm và tạo một nhánh git riêng (ví dụ `chore/install-ui-packages`). Tuyệt đối không cài trực tiếp lên nhánh chính khi chưa có kiểm soát.
+  - Agent thực thi các lệnh cài đặt chính thức bên dưới.
+  - Cài đặt xong, agent chạy lại strict check `check-ui-packages.mjs --root <repo> --ui <chosen>`. Nếu `ready: true`, quy trình token mới được tiếp tục.
+  - **Tuyệt đối không tự ý âm thầm bỏ qua** thư viện người dùng đã chọn (ví dụ người dùng chọn `both` nhưng chỉ cài `shadcn`).
 - **Nếu chọn 4 (Dừng lại)**:
   - Báo cáo rõ ràng trạng thái: *Quy trình duyệt token (Gate G0) bị khoá vì chưa có thư viện UI.*
   - **Tuyệt đối không tự ý fallback** về trang HTML thủ công (`render-token-page.mjs`) để thay thế bằng chứng duyệt G0.
@@ -124,6 +141,6 @@ npm install @heroui/react framer-motion
 
 Sau khi hoàn tất lệnh cài đặt, luôn chạy lệnh kiểm tra để xác nhận cổng G0 đã mở:
 ```bash
-node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs --root <đường-dẫn-repo-sản-phẩm> --json
+node <plugin danh-method>/skills/design-tokens/scripts/check-ui-packages.mjs --root <đường-dẫn-repo-sản-phẩm> --ui <chosen> --json
 ```
 Chỉ khi kết quả trả về `"ready": true`, agent mới chuyển sang bước sinh token và dựng Token Playground.

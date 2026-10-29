@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 export function parseArgs(argv) {
-  const args = { root: process.cwd(), json: false };
+  const args = { root: process.cwd(), json: false, ui: null };
   for (let i = 2; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--json') {
@@ -14,6 +14,10 @@ export function parseArgs(argv) {
       args.root = argv[++i];
     } else if (arg.startsWith('--root=')) {
       args.root = arg.slice('--root='.length);
+    } else if (arg === '--ui' && i + 1 < argv.length) {
+      args.ui = argv[++i].toLowerCase();
+    } else if (arg.startsWith('--ui=')) {
+      args.ui = arg.slice('--ui='.length).toLowerCase();
     }
   }
   args.root = path.resolve(args.root);
@@ -31,7 +35,11 @@ function readJsonSafe(filePath) {
   if (!fs.existsSync(filePath)) return null;
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(stripJsonComments(content));
+    try {
+      return JSON.parse(content);
+    } catch {
+      return JSON.parse(stripJsonComments(content));
+    }
   } catch {
     return null;
   }
@@ -304,7 +312,118 @@ function checkHeroUiWiring(root) {
   return false;
 }
 
-export function checkUiPackages(targetRoot = process.cwd()) {
+function parseCompoundAnatomy(code) {
+  const parts = [];
+  const match = code.match(/Object\.assign\s*\([^,]+,\s*\{([^}]+)\}\)/s);
+  if (!match) return parts;
+  const body = match[1];
+  const lines = body.split(',');
+  for (const rawLine of lines) {
+    const cleanLine = rawLine.replace(/\/\/.*$/, '').replace(/\/\*[\s\S]*?\*\//g, '').trim();
+    if (!cleanLine) continue;
+    const m = cleanLine.match(/^([A-Za-z0-9_$]+)(\s*:)?/);
+    if (m && m[1]) {
+      parts.push(m[1]);
+    }
+  }
+  return parts;
+}
+
+function scanHeroUi(root, allDeps, herouiInstalled, herouiVersion) {
+  let majorVersion = null;
+  if (herouiVersion) {
+    const parsed = parseInt(herouiVersion.split('.')[0], 10);
+    if (!Number.isNaN(parsed)) majorVersion = parsed;
+  }
+
+  const reactPkgDir = resolvePackageDir('@heroui/react', root);
+  let mode = null;
+  if (reactPkgDir && fs.existsSync(reactPkgDir)) {
+    mode = 'monolithic';
+  } else if (Object.keys(allDeps).some((d) => d.startsWith('@heroui/'))) {
+    mode = 'individual';
+  }
+
+  // stylesCssPath
+  let stylesCssPath = null;
+  const stylesPkgDir = resolvePackageDir('@heroui/styles', root);
+  if (stylesPkgDir) {
+    const candidate = path.join(stylesPkgDir, 'dist', 'themes', 'default', 'variables.css');
+    if (fs.existsSync(candidate)) {
+      stylesCssPath = candidate;
+    }
+  }
+  if (!stylesCssPath) {
+    const fallbackCandidate = path.join(root, 'node_modules', '@heroui', 'styles', 'dist', 'themes', 'default', 'variables.css');
+    if (fs.existsSync(fallbackCandidate)) {
+      stylesCssPath = fallbackCandidate;
+    }
+  }
+
+  const components = [];
+  const anatomy = {};
+
+  if (mode === 'monolithic' && reactPkgDir) {
+    const compsDir = path.join(reactPkgDir, 'dist', 'components');
+    if (fs.existsSync(compsDir)) {
+      try {
+        const entries = fs.readdirSync(compsDir, { withFileTypes: true });
+        for (const ent of entries) {
+          if (ent.isDirectory()) {
+            components.push(ent.name);
+            const compIndex = path.join(compsDir, ent.name, 'index.js');
+            if (fs.existsSync(compIndex)) {
+              try {
+                const code = fs.readFileSync(compIndex, 'utf8');
+                const parts = parseCompoundAnatomy(code);
+                if (parts.length > 0) {
+                  anatomy[ent.name] = parts;
+                }
+              } catch {}
+            }
+          }
+        }
+      } catch {}
+    }
+  } else if (mode === 'individual') {
+    const herouiScopeDir = resolvePackageDir('@heroui', root);
+    if (herouiScopeDir && fs.existsSync(herouiScopeDir)) {
+      try {
+        const entries = fs.readdirSync(herouiScopeDir, { withFileTypes: true });
+        for (const ent of entries) {
+          if (ent.isDirectory() && !['theme', 'styles', 'system', 'react'].includes(ent.name)) {
+            components.push(ent.name);
+            for (const sub of ['index.js', path.join('dist', 'index.js')]) {
+              const compIndex = path.join(herouiScopeDir, ent.name, sub);
+              if (fs.existsSync(compIndex)) {
+                try {
+                  const code = fs.readFileSync(compIndex, 'utf8');
+                  const parts = parseCompoundAnatomy(code);
+                  if (parts.length > 0) {
+                    anatomy[ent.name] = parts;
+                  }
+                } catch {}
+                break;
+              }
+            }
+          }
+        }
+      } catch {}
+    }
+  }
+
+  components.sort();
+
+  return {
+    majorVersion,
+    mode,
+    stylesCssPath,
+    components,
+    anatomy
+  };
+}
+
+export function checkUiPackages(targetRoot = process.cwd(), uiTarget = null) {
   const root = path.resolve(targetRoot);
   const compJsonPath = path.join(root, 'components.json');
   const hasCompJson = fs.existsSync(compJsonPath);
@@ -389,14 +508,36 @@ export function checkUiPackages(targetRoot = process.cwd()) {
     herouiMissing.push('tailwind wiring (heroui() plugin in tailwind config or @plugin / @import @heroui/styles in CSS)');
   }
 
+  const herouiScan = scanHeroUi(root, allDeps, herouiInstalled, herouiVersion);
+
   // --- Framework, Tailwind, PackageManager ---
   const framework = detectFramework(root, allDeps);
   const tailwind = detectTailwindVersion(root, allDeps);
   const packageManager = detectPackageManager(root);
 
-  const ready = Boolean(shadcnInstalled || (herouiInstalled && herouiWired));
+  // Available targets calculation
+  const availableTargets = [];
+  if (shadcnInstalled) availableTargets.push('shadcn');
+  if (herouiInstalled && herouiWired) availableTargets.push('heroui');
+  if (shadcnInstalled && herouiInstalled && herouiWired) availableTargets.push('both');
+
+  // Ready gate evaluation based on uiTarget
+  let ready = false;
+  const normalizedTarget = uiTarget ? uiTarget.toLowerCase() : null;
+  if (normalizedTarget === 'shadcn') {
+    ready = shadcnInstalled;
+  } else if (normalizedTarget === 'heroui') {
+    ready = Boolean(herouiInstalled && herouiWired);
+  } else if (normalizedTarget === 'both') {
+    ready = Boolean(shadcnInstalled && herouiInstalled && herouiWired);
+  } else {
+    // Discovery scan (uiTarget === null)
+    ready = Boolean(shadcnInstalled || (herouiInstalled && herouiWired));
+  }
 
   return {
+    uiTarget: normalizedTarget,
+    availableTargets,
     shadcn: {
       declared: shadcnDeclared,
       installed: shadcnInstalled,
@@ -407,6 +548,11 @@ export function checkUiPackages(targetRoot = process.cwd()) {
       declared: herouiDeclared,
       installed: herouiInstalled,
       version: herouiVersion,
+      majorVersion: herouiScan.majorVersion,
+      mode: herouiScan.mode,
+      stylesCssPath: herouiScan.stylesCssPath,
+      components: herouiScan.components,
+      anatomy: herouiScan.anatomy,
       wired: herouiWired,
       missing: herouiMissing
     },
@@ -419,7 +565,7 @@ export function checkUiPackages(targetRoot = process.cwd()) {
 
 function runCli() {
   const args = parseArgs(process.argv);
-  const result = checkUiPackages(args.root);
+  const result = checkUiPackages(args.root, args.ui);
 
   if (args.json) {
     console.log(JSON.stringify(result, null, 2));
@@ -427,6 +573,8 @@ function runCli() {
   }
 
   console.log(`\n=== Kiểm tra thư viện UI: ${args.root} ===\n`);
+  console.log(`Target UI       : ${result.uiTarget || 'Tất cả (khảo sát tự động)'}`);
+  console.log(`Mục tiêu khả dụng: ${result.availableTargets.length > 0 ? result.availableTargets.join(', ') : 'Chưa có'}`);
   console.log(`Framework       : ${result.framework}`);
   console.log(`Tailwind        : ${result.tailwind ? `v${result.tailwind}` : 'chưa xác định'}`);
   console.log(`Package Manager : ${result.packageManager || 'không rõ'}`);
@@ -442,7 +590,9 @@ function runCli() {
 
   console.log('\n--- HeroUI ---');
   console.log(`  Khai báo    : ${result.heroui.declared ? 'Có' : 'Không'}`);
-  console.log(`  Cài đặt     : ${result.heroui.installed ? `Có (v${result.heroui.version})` : 'Không'}`);
+  console.log(`  Cài đặt     : ${result.heroui.installed ? `Có (v${result.heroui.version}, major: ${result.heroui.majorVersion || '?'}, mode: ${result.heroui.mode || '?'})` : 'Không'}`);
+  console.log(`  Components  : ${result.heroui.components.length} components (${result.heroui.components.slice(0, 5).join(', ')}${result.heroui.components.length > 5 ? '...' : ''})`);
+  console.log(`  Styles CSS  : ${result.heroui.stylesCssPath || 'Không tìm thấy'}`);
   console.log(`  Tailwind wire: ${result.heroui.wired ? 'Đã cấu hình' : 'Chưa cấu hình'}`);
   if (result.heroui.missing.length > 0) {
     console.log(`  Thiếu       : ${result.heroui.missing.join(', ')}`);
@@ -450,7 +600,7 @@ function runCli() {
 
   console.log('');
   if (!result.ready) {
-    console.log('CẢNH BÁO: Dự án chưa cài đặt UI package hợp lệ. Vui lòng xin phép và cài đặt theo references/install-ui-packages.md trước khi dựng token review page.\n');
+    console.log('CẢNH BÁO: Dự án chưa đạt điều kiện cho target UI yêu cầu. Vui lòng xin phép và cài đặt theo references/install-ui-packages.md trước khi dựng token review page.\n');
     process.exit(1);
   }
   process.exit(0);

@@ -56,7 +56,21 @@ export function TokenPlayground() {
 
     const rootCss = tokensToCssRules(':root', tokens.light);
     const darkCss = tokensToCssRules('.dark', tokens.dark);
-    styleEl.textContent = `${rootCss}\n\n${darkCss}`;
+    const bridgeFor = (sel: string, t: Record<string, string>, base: Record<string, string>) => {
+      if (!isShadcnInstalled || !isHeroUIInstalled) return '';
+      const accentEdited = t['--accent'] && t['--accent'] !== base['--accent'];
+      const mutedEdited = t['--muted'] && t['--muted'] !== base['--muted'];
+      return `${sel} [data-heroui-preview] {\n` +
+        (!accentEdited && t['--primary'] ? `  --accent: ${t['--primary']} !important;\n  --accent-foreground: ${t['--primary-foreground'] || '#fff'} !important;\n` : '') +
+        (!mutedEdited && t['--muted-foreground'] ? `  --muted: ${t['--muted-foreground']} !important;\n` : '') +
+        `}`;
+    };
+    styleEl.textContent = [
+      rootCss,
+      darkCss,
+      bridgeFor(':root', tokens.light, baseline.tokens.light),
+      bridgeFor('.dark', tokens.dark, baseline.tokens.dark),
+    ].filter(Boolean).join('\n\n');
 
     if (mode === 'dark') {
       document.documentElement.classList.add('dark');
@@ -303,7 +317,7 @@ export function TokenPlayground() {
                     <span className="text-xs text-muted-foreground font-mono">mode: light</span>
                   </div>
                   {activeTab === 'shadcn' && isShadcnInstalled && <ShadcnPreview />}
-                  {activeTab === 'heroui' && isHeroUIInstalled && <HeroUIPreview />}
+                  {activeTab === 'heroui' && isHeroUIInstalled && <div data-heroui-preview><HeroUIPreview /></div>}
                   {activeTab === 'contrast' && (
                     <div className="space-y-6">
                       <ContrastGrid tokens={tokens.light} themeName="Light" />
@@ -325,7 +339,7 @@ export function TokenPlayground() {
                     <span className="text-xs text-muted-foreground font-mono">mode: dark</span>
                   </div>
                   {activeTab === 'shadcn' && isShadcnInstalled && <ShadcnPreview />}
-                  {activeTab === 'heroui' && isHeroUIInstalled && <HeroUIPreview />}
+                  {activeTab === 'heroui' && isHeroUIInstalled && <div data-heroui-preview><HeroUIPreview /></div>}
                   {activeTab === 'contrast' && (
                     <div className="space-y-6">
                       <ContrastGrid tokens={tokens.dark} themeName="Dark" />
@@ -337,7 +351,7 @@ export function TokenPlayground() {
             ) : (
               <div className="space-y-8">
                 {activeTab === 'shadcn' && isShadcnInstalled && <ShadcnPreview />}
-                {activeTab === 'heroui' && isHeroUIInstalled && <HeroUIPreview />}
+                {activeTab === 'heroui' && isHeroUIInstalled && <div data-heroui-preview><HeroUIPreview /></div>}
                 {activeTab === 'contrast' && (
                   <div className="space-y-8">
                     <ContrastGrid tokens={activeTokens} themeName={activeThemeName.toUpperCase()} />

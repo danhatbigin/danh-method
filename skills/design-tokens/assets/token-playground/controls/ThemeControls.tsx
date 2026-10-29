@@ -39,6 +39,91 @@ function mixRgb(base: [number, number, number], target: [number, number, number]
   ];
 }
 
+function ColorField({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  name: string;
+  label?: string;
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  const hexVal = useMemo(() => {
+    const rgb = resolveRgb(value);
+    return rgb ? rgbToHex(rgb) : '#3b82f6';
+  }, [value]);
+
+  return (
+    <div className="space-y-1">
+      <label htmlFor={id} className="text-xs font-medium flex justify-between">
+        <span>{label || name}</span>
+        {label && <span className="font-mono text-muted-foreground">{name}</span>}
+      </label>
+      <div className="flex gap-2 items-center">
+        <input
+          type="color"
+          value={hexVal}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-7 w-7 rounded border cursor-pointer p-0.5 bg-background shrink-0"
+          title={`Chọn màu cho ${name}`}
+        />
+        <input
+          id={id}
+          type="text"
+          className="flex-1 rounded-md border bg-background px-2 py-1 text-xs font-mono"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}
+
+function CompactColorField({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  const hexVal = useMemo(() => {
+    const rgb = resolveRgb(value);
+    return rgb ? rgbToHex(rgb) : '#3b82f6';
+  }, [value]);
+
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <label htmlFor={id} className="font-mono text-muted-foreground truncate w-24 text-[11px]" title={label}>
+        {name}
+      </label>
+      <input
+        type="color"
+        value={hexVal}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-6 w-6 rounded border cursor-pointer p-0.5 bg-background shrink-0"
+        title={`Chọn màu cho ${name}`}
+      />
+      <input
+        id={id}
+        type="text"
+        className="flex-1 rounded-md border bg-background px-2 py-1 font-mono text-xs"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
 export function ThemeControls({
   mode,
   onModeChange,
@@ -49,17 +134,17 @@ export function ThemeControls({
 }: ThemeControlsProps) {
   const isDeclared = (name: string) => Object.prototype.hasOwnProperty.call(declaredTokens, name);
 
-  // 5 shades calculation for Primary preview
+  // 5 shades calculation for Primary preview (or Accent preview if primary not present)
   const primaryShades = useMemo(() => {
-    const primaryVal = activeTokens['--primary'] || '';
+    const primaryVal = activeTokens['--primary'] || activeTokens['--accent'] || '';
     const rgb = resolveRgb(primaryVal);
     if (!rgb) {
       return [
-        { label: '100 subtle', value: 'rgba(var(--primary), 0.12)' },
-        { label: '300 disabled', value: 'rgba(var(--primary), 0.4)' },
+        { label: '100 subtle', value: 'rgba(59, 130, 246, 0.12)' },
+        { label: '300 disabled', value: 'rgba(59, 130, 246, 0.4)' },
         { label: '500 base', value: primaryVal || '#3b82f6' },
-        { label: '600 hover', value: 'rgba(var(--primary), 0.85)' },
-        { label: '700 active', value: 'rgba(var(--primary), 0.7)' },
+        { label: '600 hover', value: 'rgba(59, 130, 246, 0.85)' },
+        { label: '700 active', value: 'rgba(59, 130, 246, 0.7)' },
       ];
     }
     const white: [number, number, number] = [255, 255, 255];
@@ -71,7 +156,7 @@ export function ThemeControls({
       { label: '600 hover', value: rgbToHex(mixRgb(rgb, black, 0.12)) },
       { label: '700 active', value: rgbToHex(mixRgb(rgb, black, 0.25)) },
     ];
-  }, [activeTokens['--primary']]);
+  }, [activeTokens['--primary'], activeTokens['--accent']]);
 
   // Radius slider value (extract number in px or rem)
   const currentRadiusVal = activeTokens['--radius'] || '0.5rem';
@@ -90,7 +175,37 @@ export function ThemeControls({
     onTokenChange('--radius', `${(px / 16).toFixed(3).replace(/\.?0+$/, '')}rem`);
   };
 
-  const roleRadii = ['--radius-card', '--radius-tile', '--radius-popover', '--radius-item'].filter(isDeclared);
+  const roleRadii = ['--radius-card', '--radius-tile', '--radius-popover', '--radius-item', '--field-radius'].filter(isDeclared);
+
+  const baseTokens = [
+    { name: '--background', label: 'Nền trang (--background)' },
+    { name: '--foreground', label: 'Chữ chính (--foreground)' },
+    { name: '--surface', label: 'Bề mặt HeroUI (--surface)' },
+    { name: '--surface-foreground', label: 'Chữ bề mặt (--surface-foreground)' },
+    { name: '--surface-secondary', label: 'Bề mặt phụ (--surface-secondary)' },
+    { name: '--overlay', label: 'Lớp phủ overlay (--overlay)' },
+  ].filter((item) => isDeclared(item.name));
+
+  const semanticTokens = [
+    { name: '--secondary', label: 'Secondary (30%)' },
+    { name: '--muted', label: 'Muted (Nền tĩnh)' },
+    { name: '--destructive', label: 'Destructive' },
+    { name: '--danger', label: 'Danger (HeroUI)' },
+    { name: '--warning', label: 'Warning (HeroUI)' },
+    { name: '--success', label: 'Success (HeroUI)' },
+    { name: '--default', label: 'Default (HeroUI)' },
+    { name: '--default-foreground', label: 'Default Chữ (HeroUI)' },
+    { name: '--border', label: 'Border (Viền)' },
+    { name: '--separator', label: 'Separator (HeroUI)' },
+    { name: '--ring', label: 'Ring (Focus)' },
+    { name: '--focus', label: 'Focus (HeroUI)' },
+  ].filter((item) => isDeclared(item.name));
+
+  const fieldTokens = [
+    { name: '--field-background', label: 'Nền input (--field-background)' },
+    { name: '--field-foreground', label: 'Chữ input (--field-foreground)' },
+    { name: '--field-border', label: 'Viền input (--field-border)' },
+  ].filter((item) => isDeclared(item.name));
 
   return (
     <aside className="w-80 shrink-0 border-r bg-card/60 p-4 text-card-foreground overflow-y-auto space-y-6 focus-within:ring-0">
@@ -139,84 +254,76 @@ export function ThemeControls({
         </p>
       </section>
 
-      {/* 2. Base / Neutral Color */}
-      {(isDeclared('--background') || isDeclared('--foreground')) && (
+      {/* 2. Base / Neutral / Surface Colors */}
+      {baseTokens.length > 0 && (
         <section aria-labelledby="heading-base" className="space-y-3">
           <h4 id="heading-base" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Màu nền tảng (Base / Neutral)
+            Màu nền tảng & Bề mặt (Base / Surface)
           </h4>
           <div className="space-y-2">
-            {isDeclared('--background') && (
-              <div className="space-y-1">
-                <label htmlFor="token-input-background" className="text-xs font-medium flex justify-between">
-                  <span>Nền trang (--background)</span>
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    id="token-input-background"
-                    type="text"
-                    className="flex-1 rounded-md border bg-background px-2 py-1 text-xs font-mono"
-                    value={activeTokens['--background'] || ''}
-                    onChange={(e) => handleColorInput('--background', e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-            {isDeclared('--foreground') && (
-              <div className="space-y-1">
-                <label htmlFor="token-input-foreground" className="text-xs font-medium flex justify-between">
-                  <span>Chữ chính (--foreground)</span>
-                </label>
-                <input
-                  id="token-input-foreground"
-                  type="text"
-                  className="w-full rounded-md border bg-background px-2 py-1 text-xs font-mono"
-                  value={activeTokens['--foreground'] || ''}
-                  onChange={(e) => handleColorInput('--foreground', e.target.value)}
-                />
-              </div>
-            )}
+            {baseTokens.map((item) => (
+              <ColorField
+                key={item.name}
+                id={`token-input-${item.name.replace(/^--/, '')}`}
+                name={item.name}
+                label={item.label}
+                value={activeTokens[item.name] || ''}
+                onChange={(val) => handleColorInput(item.name, val)}
+              />
+            ))}
           </div>
         </section>
       )}
 
       {/* 3. Primary / Accent Color with 5 shades preview */}
-      {isDeclared('--primary') && (
+      {(isDeclared('--primary') || isDeclared('--accent')) && (
         <section aria-labelledby="heading-primary" className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 id="heading-primary" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Màu chủ đạo (Primary · 10%)
+              Màu chủ đạo (Primary / Accent · 10%)
             </h4>
             <span className="text-[10px] text-muted-foreground">5 sắc độ Danh Method</span>
           </div>
 
           <div className="space-y-2">
-            <div className="space-y-1">
-              <label htmlFor="token-input-primary" className="text-xs font-medium flex justify-between">
-                <span>--primary</span>
-              </label>
-              <input
+            {isDeclared('--primary') && (
+              <ColorField
                 id="token-input-primary"
-                type="text"
-                className="w-full rounded-md border bg-background px-2 py-1 text-xs font-mono"
+                name="--primary"
+                label="--primary"
                 value={activeTokens['--primary'] || ''}
-                onChange={(e) => handleColorInput('--primary', e.target.value)}
+                onChange={(val) => handleColorInput('--primary', val)}
               />
-            </div>
+            )}
 
             {isDeclared('--primary-foreground') && (
-              <div className="space-y-1">
-                <label htmlFor="token-input-primary-foreground" className="text-xs font-medium flex justify-between">
-                  <span>--primary-foreground</span>
-                </label>
-                <input
-                  id="token-input-primary-foreground"
-                  type="text"
-                  className="w-full rounded-md border bg-background px-2 py-1 text-xs font-mono"
-                  value={activeTokens['--primary-foreground'] || ''}
-                  onChange={(e) => handleColorInput('--primary-foreground', e.target.value)}
-                />
-              </div>
+              <ColorField
+                id="token-input-primary-foreground"
+                name="--primary-foreground"
+                label="--primary-foreground"
+                value={activeTokens['--primary-foreground'] || ''}
+                onChange={(val) => handleColorInput('--primary-foreground', val)}
+              />
+            )}
+
+            {isDeclared('--accent') && (
+              <ColorField
+                id="token-input-accent"
+                name="--accent"
+                label="--accent (HeroUI Accent)"
+                value={activeTokens['--accent'] || ''}
+                onChange={(val) => handleColorInput('--accent', val)}
+              />
+            )}
+
+            {isDeclared('--accent-foreground') && (
+              <ColorField
+                id="token-input-accent-foreground"
+                name="--accent-foreground"
+                label="--accent-foreground"
+                value={activeTokens['--accent-foreground'] || ''}
+                onChange={(val) => handleColorInput('--accent-foreground', val)}
+              />
             )}
 
             {/* 5 Shades Preview */}
@@ -241,39 +348,49 @@ export function ThemeControls({
         </section>
       )}
 
-      {/* 4. Semantic Colors */}
-      <section aria-labelledby="heading-semantics" className="space-y-3">
-        <h4 id="heading-semantics" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Màu ngữ nghĩa (Semantics)
-        </h4>
-        <div className="grid grid-cols-1 gap-2 text-xs">
-          {[
-            { name: '--secondary', label: 'Secondary (30%)' },
-            { name: '--muted', label: 'Muted (Nền tĩnh)' },
-            { name: '--accent', label: 'Accent (Điểm nhấn)' },
-            { name: '--destructive', label: 'Destructive / Cảnh báo' },
-            { name: '--border', label: 'Border (Viền)' },
-            { name: '--ring', label: 'Ring (Focus)' },
-          ]
-            .filter((item) => isDeclared(item.name))
-            .map((item) => (
-              <div key={item.name} className="flex items-center justify-between gap-2">
-                <label htmlFor={`token-input-${item.name}`} className="font-mono text-muted-foreground truncate w-24">
-                  {item.name}
-                </label>
-                <input
-                  id={`token-input-${item.name}`}
-                  type="text"
-                  className="flex-1 rounded-md border bg-background px-2 py-1 font-mono text-xs"
-                  value={activeTokens[item.name] || ''}
-                  onChange={(e) => handleColorInput(item.name, e.target.value)}
-                />
-              </div>
+      {/* 4. Semantic / Status Colors */}
+      {semanticTokens.length > 0 && (
+        <section aria-labelledby="heading-semantics" className="space-y-3">
+          <h4 id="heading-semantics" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Màu ngữ nghĩa (Semantics & Status)
+          </h4>
+          <div className="grid grid-cols-1 gap-2 text-xs">
+            {semanticTokens.map((item) => (
+              <CompactColorField
+                key={item.name}
+                id={`token-input-${item.name.replace(/^--/, '')}`}
+                name={item.name}
+                label={item.label}
+                value={activeTokens[item.name] || ''}
+                onChange={(val) => handleColorInput(item.name, val)}
+              />
             ))}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
-      {/* 5. Radius Controls */}
+      {/* 5. Field Tokens */}
+      {fieldTokens.length > 0 && (
+        <section aria-labelledby="heading-fields" className="space-y-3">
+          <h4 id="heading-fields" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Ô nhập liệu Form (Field Tokens)
+          </h4>
+          <div className="space-y-2">
+            {fieldTokens.map((item) => (
+              <CompactColorField
+                key={item.name}
+                id={`token-input-${item.name.replace(/^--/, '')}`}
+                name={item.name}
+                label={item.label}
+                value={activeTokens[item.name] || ''}
+                onChange={(val) => handleColorInput(item.name, val)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 6. Radius Controls */}
       {isDeclared('--radius') && (
         <section aria-labelledby="heading-radius" className="space-y-3">
           <div className="flex items-center justify-between">
@@ -347,7 +464,7 @@ export function ThemeControls({
         </section>
       )}
 
-      {/* 6. Font Family */}
+      {/* 7. Font Family */}
       {(isDeclared('--font-sans') || isDeclared('--font-heading') || isDeclared('--font-mono')) && (
         <section aria-labelledby="heading-fonts" className="space-y-3">
           <h4 id="heading-fonts" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -372,7 +489,7 @@ export function ThemeControls({
         </section>
       )}
 
-      {/* 7. Spacing / Density */}
+      {/* 8. Spacing / Density */}
       {isDeclared('--spacing') && (
         <section aria-labelledby="heading-density" className="space-y-2">
           <h4 id="heading-density" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">

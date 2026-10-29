@@ -391,6 +391,7 @@ function runCli() {
 
   if (result.proposeSubagents && result.proposeSubagents.length > 0) {
     console.log('--- ĐỀ XUẤT SUBAGENT & MODEL TIẾT KIỆM ---');
+    console.log('  ⚠️ Khuyến cáo: Chỉ dùng Coordinator + Subagents hẹp, không chạy multi-agents độc lập (bài học \$40 quota).');
     result.proposeSubagents.forEach((s, idx) => {
       console.log(`\n  ${idx + 1}. Subagent : ${s.subagent}`);
       console.log(`     Tác vụ   : ${s.role}`);

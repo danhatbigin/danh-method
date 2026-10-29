@@ -93,7 +93,7 @@ Hai trục riêng (D3):
 
 - Làm feature lõi trước bề mặt tổng hợp phụ thuộc nó; nghiên cứu thì hỏi hiện trạng chức năng trước khi chọn hướng.
 - Giao việc: “Đọc và làm theo <đường dẫn prompt>”. Prompt lưu trong repo spec.
-- Model mạnh điều phối; subagent model rẻ làm phạm vi hẹp. Chỉ chia khi glob file không chồng nhau; một writer và verifier chỉ đọc khi tiếp quản; một tác vụ nặng tại một thời điểm.
+- Model mạnh điều phối; subagent model rẻ làm phạm vi hẹp. **Chỉ dùng mô hình Coordinator + Subagents, không dùng multi-agents độc lập** (tác giả repo đã trả giá hơn \$40 tiền API token cho bài học này: multi-agents tự do trò chuyện dễ lặp vô tận, lệch hợp đồng và cháy sạch quota). Chỉ chia khi glob file không chồng nhau; một writer và verifier chỉ đọc khi tiếp quản; một tác vụ nặng tại một thời điểm.
 - Báo người phụ trách tối đa **3 điểm đạt / 3 điểm cần sửa / 1 quyết định**, ưu tiên ảnh/graph và số đo thật; đây là sở thích làm việc.
 - Stage 6 đạt chưa phải merge-ready: cần `--pr` PASS, Stage 6, bằng chứng từng AC và hết blocker; sau đó còn vòng owner review G3. Không tự merge khi chưa có quyền.
 

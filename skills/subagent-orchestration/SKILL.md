@@ -7,6 +7,10 @@ description: Orchestrates a Danh Method feature from one main agent that dispatc
 
 Agent chính (phiên đang nói chuyện với người phụ trách sản phẩm) là **người điều phối** — vai điều phối sản phẩm (Lead Coordinator): viết tài liệu, viết brief, giao việc, kiểm kết quả, báo cáo. Subagent làm việc tay chân trong phạm vi hẹp và trả kết quả về. Thay cho mô hình nhiều agent độc lập vốn tốn công đồng bộ.
 
+> [!WARNING]
+> **Khuyến cáo sống còn: Chỉ phát triển sản phẩm với Coordinator + Subagents, KHÔNG dùng Multi-Agents.**  
+> Người viết ra repo này đã phải trả giá hơn \$40 tiền API token chỉ để nhận ra bài học: thả cho các agent chạy độc lập, tự trò chuyện ngang hàng sẽ gây dẫm chân lên code, lệch schema và vòng lặp cháy sạch quota mà không ra được sản phẩm. Mô hình 1 Coordinator điều phối các Subagent thi hành độc lập theo glob là con đường duy nhất kiểm soát được chất lượng và chi phí.
+
 ## 1. Khi nào chia, khi nào không
 
 Chia khi các phần **độc lập** (khác file, khác vùng sở hữu): design prototype ‖ logic; nhiều bề mặt UI không chung file; review song song với việc khác.

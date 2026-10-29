@@ -102,6 +102,7 @@ Superpowers cho kỷ luật thi hành; UI UX Pro Max cho tra cứu/kiểm thiế
 
 - Chạy `node skills/danh-method/scripts/detect-stage.mjs [--spec <docs>] [--code <codeRoot>] [--feature <tên>] [--json]` để tự động nhận diện giai đoạn hiện tại (Stage 0, 0.5, 1–3, 4A, 4B, 4C, 5, 6, COMPLETE) dựa trên trạng thái thật của Git và tài liệu trên đĩa.
 - Tại các giai đoạn thi hành cần subagent (Stage 4A, 4C, 5, 6): coordinator **tuyệt đối không âm thầm spawn subagent**.
+- **Khuyến cáo sống còn (Subagent vs Multi-Agents)**: Chỉ phát triển sản phẩm với mô hình Coordinator + Subagents hẹp, tuyệt đối không thả rông multi-agents độc lập (tác giả repo đã trả giá hơn \$40 tiền API token để học được bài học: multi-agents tự ping-pong sẽ gây cháy sạch quota, dẫm đạp code và trượt spec).
 - Luôn chủ động xuất bảng đề xuất phân công: vai trò subagent, tác vụ hẹp, vùng file sở hữu (glob cô lập), đề xuất mặc định **model tiết kiệm** (`flash` / `haiku` / `mini`) để bảo toàn quota/chi phí, kèm lý do.
 - Dừng lại chờ người dùng xác nhận 1 trong 3 lựa chọn:
   1. **Đồng ý**: Kích hoạt subagent với model tiết kiệm đã đề xuất.

@@ -36,6 +36,10 @@ How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer c
 
 `design-prototyper` · `logic-implementer` · `ui-implementer` · `code-reviewer` (read-only) · `acceptance-tester`.
 
+> [!IMPORTANT]
+> **Khuyến cáo sống còn (Strong Recommendation): Chỉ dùng Coordinator + Subagents, KHÔNG dùng Multi-Agents độc lập.**
+> Tác giả repo này đã tốn hơn \$40 tiền API token chỉ để nhận ra bài học: thả cho các agent độc lập tự giao tiếp ngang hàng (peer-to-peer multi-agents) sẽ dẫn tới vòng lặp vô tận, lệch hợp đồng dữ liệu, xung đột ghi đè code và cháy sạch quota. Hãy luôn duy trì mô hình 1 Điều phối viên chính (Coordinator) giao việc cho các Subagent phạm vi hẹp có ranh giới glob cô lập và prompt hợp đồng chặt chẽ.
+
 ## Included Tooling & Companions
 
 - **Companion plugin: Superpowers** (`obra/superpowers`, MIT). `check-superpowers` hook detects it at session start and asks permission before installing (Claude Code: `/plugin marketplace add obra/superpowers-marketplace` → `/plugin install superpowers@superpowers-marketplace`; Antigravity: `agy plugin install https://github.com/obra/superpowers`). Stage-to-skill mapping in `skills/danh-method/references/install-superpowers.md`.

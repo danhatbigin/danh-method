@@ -64,10 +64,20 @@ Trong repo code tạo 3 file trỏ về operator profile, và thêm chúng vào 
 
 Hỏi trước, rồi cài theo `execute-tasks/assets/verify-kit/README.md` ở mode `local` (không đụng file đang track). Chạy `node .verify/verify.mjs --doctor` và báo kết quả nguyên văn.
 
-## 7. ui-ux-pro-max
+## 7. Companion plugins (ui-ux-pro-max & Superpowers)
 
-Chạy `node <plugin>/hooks/scripts/check-uipro.mjs`. Chưa có → hỏi xin phép cài, nêu lý do, theo `design-tokens/references/install-ui-ux-pro-max.md`. Không tự cài.
+Chạy cả hai lệnh kiểm tra:
+- `node <plugin>/hooks/scripts/check-uipro.mjs --json`
+- `node <plugin>/hooks/scripts/check-superpowers.mjs --json`
+
+Nếu thiếu một hoặc cả hai plugin:
+- **Hỏi xin phép một lần duy nhất** (single question round, dùng AskUserQuestion nếu có). Nêu rõ lý do từng plugin:
+  - `ui-ux-pro-max`: Gợi ý hệ màu/font theo loại sản phẩm, sinh token 3 lớp, soát token viết cứng, tra cứu UX (`design-tokens/references/install-ui-ux-pro-max.md`).
+  - `Superpowers`: Kỷ luật thi hành (brainstorming trước spec, TDD, systematic-debugging, review và verify có bằng chứng) (`danh-method/references/install-superpowers.md`).
+- Không tự ý cài khi chưa được đồng ý.
+- Đồng ý: cài theo hướng dẫn từng môi trường trong file reference tương ứng, sau đó chạy lại script kiểm tra.
+- Từ chối plugin nào: tiếp tục quy trình mà không có plugin đó, ghi chú vào báo cáo, không hỏi lại trong phiên.
 
 ## 8. Báo lại
 
-3–5 dòng: repo spec ở đâu, hồ sơ của ai đã tạo, ui-ux-pro-max có chưa, giả định nào cần duyệt, bước tiếp theo: `design-tokens` (dựng trang token, gate G0) rồi `feature-spec` cho feature đầu tiên.
+3–5 dòng: repo spec ở đâu, hồ sơ của ai đã tạo, tình trạng companion plugins (ui-ux-pro-max, Superpowers), giả định nào cần duyệt, bước tiếp theo: `design-tokens` (dựng trang token, gate G0) rồi `feature-spec` cho feature đầu tiên.

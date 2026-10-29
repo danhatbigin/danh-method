@@ -25,7 +25,7 @@ Thư mục thêm: `research/` (khảo sát cách làm việc gốc, 22/10/2026),
 |---|---|
 | `danh-method` | Cửa vào: triết lý, vòng đời, luật giao tiếp, nguồn sự thật, công cụ |
 | `project-setup` | Dự án mới, junior mới: repo spec, operator profile, project config, verify-kit |
-| `design-tokens` | Stage 2: chốt token, render trang HTML token (AA, light/dark), gate G0; dùng ui-ux-pro-max |
+| `design-tokens` | Stage 2: kiểm package UI đã cài → token playground từ component thật (chỉnh, AA, light/dark, export) → gate G0; dùng ui-ux-pro-max |
 | `feature-spec` | Stage 1–3: PRD / USER_FLOW / GUIDANCE / TASKS, quyết định + Q, 3 bước, 6×6 |
 | `design-prototype` | Component thật + token controls MD/JSON + provenance; điều phối chụp ảnh và REVIEW |
 | `design-review` | Stage 5–6: audit UX, nghiệm thu trên DB bản sao, ACCEPTANCE trung thực |
@@ -40,6 +40,7 @@ Thư mục thêm: `research/` (khảo sát cách làm việc gốc, 22/10/2026),
 
 ## Kèm theo
 
+- **Plugin đi kèm: Superpowers** (obra, MIT). Hook `check-superpowers` nhắc khi máy chưa có; cài sau khi được phép (Claude Code: `/plugin marketplace add obra/superpowers-marketplace` → `/plugin install superpowers@superpowers-marketplace`; Antigravity: `agy plugin install https://github.com/obra/superpowers`).
 - **Plugin đi kèm: ui-ux-pro-max** (nextlevelbuilder, MIT). Không đóng gói sẵn; hook `check-uipro` nhắc khi máy chưa có, và skill hỏi xin phép + nêu lý do trước khi cài (Cowork: thẻ cài plugin; Claude Code: `/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill` → `/plugin install ui-ux-pro-max@ui-ux-pro-max-skill`; Codex/Antigravity: `uipro init`).
 - **Script trang token** (`skills/design-tokens/scripts/render-token-page.mjs`): CSS token → một trang HTML tự chứa.
 - **Hook `guard-git`** (Claude Code): chặn `git reset --hard`, `stash`, `clean -f`, force push, `checkout --`/`.`, `restore .`, xoá nhánh. Cần Node.
@@ -52,7 +53,13 @@ Thư mục thêm: `research/` (khảo sát cách làm việc gốc, 22/10/2026),
 
 - Nội dung skill viết tiếng Việt; mô tả skill tiếng Anh để agent nhận diện tốt.
 - Stack trung lập; MiVida chỉ là ví dụ. Luật riêng của từng dự án (No Border, font, cổng…) đặt trong `process/project.md` của dự án đó.
-- Phiên bản 0.3.0 · 29/10/2026. D1: điều phối tạo ảnh/REVIEW. D2: prototype render component thật, chỉnh và xuất/nạp token MD/JSON. D4: bộ công cụ thiết kế/thi hành dùng Superpowers và UI UX Pro Max.
+- Phiên bản 0.4.0 · 29/10/2026 (v0.3.0 cùng ngày). D1: điều phối tạo ảnh/REVIEW. D2: prototype render component thật, chỉnh và xuất/nạp token MD/JSON. D4: bộ công cụ thiết kế/thi hành dùng Superpowers và UI UX Pro Max.
+
+## Thay đổi v0.4.0
+
+- **Cổng package UI:** `design-tokens` chạy `scripts/check-ui-packages.mjs` trước; shadcn/ui hoặc HeroUI chưa cài thật → dừng, hỏi xin phép cài (`references/install-ui-packages.md`), không sinh token hay trang duyệt.
+- **Token playground (G0):** `scripts/scaffold-playground.mjs` chép trang kiểu ui.shadcn.com/create vào project: panel chỉnh màu/bo góc/font/light-dark/khoảng cách/bóng, preview component shadcn/HeroUI thật, AA trực tiếp, export/import CSS/JSON/MD có hash nguồn. Build bằng tooling của project. `render-token-page.mjs` hạ xuống bảng tra phụ lục.
+- **Superpowers là plugin đi kèm:** hook `check-superpowers` lúc mở phiên, xin phép cài cùng lượt với ui-ux-pro-max; map skill Superpowers theo stage (`skills/danh-method/references/install-superpowers.md`).
 
 ## Thay đổi v0.3.0
 

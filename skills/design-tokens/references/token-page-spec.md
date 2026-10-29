@@ -1,4 +1,9 @@
-# Trang token — `render-token-page.mjs`
+# Bảng tra token (Phụ lục) — `render-token-page.mjs`
+
+> [!IMPORTANT]
+> **Đây là tài liệu đặc tả cho bảng tra cứu token phụ lục (appendix), KHÔNG PHẢI bằng chứng duyệt Gate G0.**
+> Theo quy định Danh Method (chốt 29/10/2026), bằng chứng duyệt Gate G0 bắt buộc phải là **Token Playground** dựng từ các component thật đã cài đặt trong dự án (shadcn/ui hoặc HeroUI), xem chi tiết tại [token-playground.md](token-playground.md).
+> Script `render-token-page.mjs` chỉ dùng làm bảng tra cứu phụ trợ khi cần rà soát toàn bộ bảng giá trị CSS và tương phản màu tĩnh, và tuyệt đối không được dùng khi dự án chưa cài đặt gói UI.
 
 ## Đầu vào
 

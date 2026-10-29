@@ -7,11 +7,15 @@ description: Entry point of the Danh Method, a designer-led way to build a produ
 
 Phương pháp của Danh Nguyen (Head of Design, Bigin) để một designer tự dẫn dắt agent build sản phẩm tới mức hoàn thiện, rút ra từ dự án MiVida Portal. Skill này định hướng; việc cụ thể nằm ở các skill con.
 
-## 1. Trước khi làm gì: đọc hồ sơ
+## 1. Trước khi làm gì: đọc hồ sơ và kiểm plugin đi kèm
 
 1. Tìm **operator profile** của người đang làm việc: `process/operator-<tên>.md` trong repo spec (hoặc nội dung trong `CLAUDE.local.md` / `AGENTS.override.md`). Không có → chạy skill `project-setup` trước.
 2. Tìm **project config**: `process/project.md` (repo, stack, design system, lệnh kiểm tra, cổng, luật nhánh, owner).
-3. Áp profile vào cách giao tiếp: designer thì không đưa lệnh terminal, nói theo những gì thấy trên màn hình; dev thì được nói kỹ thuật nhưng vẫn giữ mọi gate.
+3. **Kiểm plugin đi kèm** (chạy khi bắt đầu phiên hoặc setup):
+   - `node <plugin>/hooks/scripts/check-uipro.mjs --json` → tra cứu UI/UX, token (`design-tokens/references/install-ui-ux-pro-max.md`).
+   - `node <plugin>/hooks/scripts/check-superpowers.mjs --json` → kỷ luật thi hành (`danh-method/references/install-superpowers.md`).
+   - Thiếu plugin nào → **hỏi xin phép một lần** (nêu lý do rõ ràng), không tự cài. Bị từ chối thì làm tiếp và ghi nhận "không có plugin", không hỏi lại trong phiên.
+4. Áp profile vào cách giao tiếp: designer thì không đưa lệnh terminal, nói theo những gì thấy trên màn hình; dev thì được nói kỹ thuật nhưng vẫn giữ mọi gate.
 
 ## 2. Vòng đời một feature (bản đồ skill)
 
@@ -66,11 +70,17 @@ Hai trục riêng (D3):
 - **Kỹ thuật / merge:** owner kỹ thuật (ghi trong project config). Cần "lý do thích đáng" khi đề xuất.
 - "Toàn quyền trong nhánh này" chỉ áp cho nhánh đó; báo cáo vẫn bắt buộc.
 
-## 7. Công cụ
+## 7. Công cụ và plugin đi kèm
 
 - **ui-ux-pro-max** là plugin đi kèm (gợi ý nền thị giác, sinh token, soát màu viết cứng, tra cứu UX). Chưa cài thì **hỏi xin phép, nêu lý do** rồi mới cài — cách làm ở `design-tokens/references/install-ui-ux-pro-max.md`. Bị từ chối thì làm thủ công, không hỏi lại trong phiên.
+- **Superpowers** là plugin companion giữ **kỷ luật thi hành** (không phải menu tuỳ chọn). Chưa cài thì hỏi xin phép theo `danh-method/references/install-superpowers.md`. Ánh xạ giai đoạn → Superpowers skills:
+  - Trước Stage 1 (Hiểu vấn đề): `brainstorming` (làm rõ trước khi viết spec/PRD).
+  - Sau Stage 3 / Kế hoạch: `writing-plans` (lập kế hoạch chi tiết từng task, chữ ký, test).
+  - Stage 4 (Thi hành task): `executing-plans`, `using-git-worktrees`, `test-driven-development` (TDD red-green-refactor).
+  - Khi gặp lỗi / test hỏng: `systematic-debugging` (điều tra 4 pha tìm nguyên nhân gốc rễ).
+  - Stage 4 / Bước 5 (Subagent): `subagent-driven-development` (chia subagent theo bề mặt độc lập).
+  - Stage 6 (Review & Nghiệm thu): `requesting-code-review`, `receiving-code-review`, `verification-before-completion` (xác minh bằng chứng trước khi báo xong).
 - Thiết kế/redesign: `ui-ux-pro-max` để tra cứu; giữ design system đã chốt. Superpowers giữ kỷ luật thi hành.
-- `superpowers` dùng như **kỷ luật**, không phải menu: brainstorming (làm rõ trước khi build), executing-plans, subagent-driven-development, systematic-debugging, test-driven-development, verification-before-completion.
 - Kiểm tra: verify-kit (`execute-tasks/assets/verify-kit`).
 
 ## 8. Nhịp điều hành v0.3 (findings §1, A1.2, D5)

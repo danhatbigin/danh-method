@@ -12,10 +12,10 @@ How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer c
 
 ## Quick Start
 
-1. Install the plugin and say: *"Setup dự án mới theo danh-method"* (or *"Set up a new project with danh-method"*) → `project-setup` scaffolds the spec repository, operator profile (designer/developer), and project config, then checks for companion plugins (`Superpowers` and `ui-ux-pro-max`) and asks permission before installing if missing.
-2. *"Dựng trang token"* (or *"Build the token playground"*) → `design-tokens` scans installed UI packages, asks you to choose **one** UI library (`shadcn/ui` or `HeroUI`), verifies it is installed, and scaffolds an interactive **Token Playground** (inspired by `ui.shadcn.com/create`) rendered from real components with live AA contrast checks for Gate G0 approval.
-3. First feature: *"Viết PRD cho feature X"* → `feature-spec`.
-4. Approve the PRD → *"Subagent nha em"* → `subagent-orchestration` dispatches parallel `design-prototyper` ‖ `logic-implementer`, followed by `ui-implementer`, `code-reviewer`, and `acceptance-tester`.
+1. Install the plugin and say: *"Set up a new project with danh-method"* (or *"Setup dự án mới theo danh-method"*) → `project-setup` scaffolds the spec repository, operator profile (designer/developer), and project config, then checks for companion plugins (`Superpowers` and `ui-ux-pro-max`) and asks permission before installing if missing.
+2. *"Build the token playground"* (or *"Dựng trang token"*) → `design-tokens` scans installed UI packages, asks you to choose **one** UI library (`shadcn/ui` or `HeroUI`), verifies it is installed, and scaffolds an interactive **Token Playground** (inspired by `ui.shadcn.com/create`) rendered from real components with live AA contrast checks for Gate G0 approval.
+3. First feature: *"Write PRD for feature X"* (or *"Viết PRD cho feature X"*) → `feature-spec`.
+4. Approve the PRD → *"Dispatch subagents"* (or *"Subagent nha em"*) → `subagent-orchestration` dispatches parallel `design-prototyper` ‖ `logic-implementer`, followed by `ui-implementer`, `code-reviewer`, and `acceptance-tester`.
 
 ## Skills
 
@@ -37,8 +37,10 @@ How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer c
 `design-prototyper` · `logic-implementer` · `ui-implementer` · `code-reviewer` (read-only) · `acceptance-tester`.
 
 > [!IMPORTANT]
-> **Khuyến cáo sống còn (Strong Recommendation): Chỉ dùng Coordinator + Subagents, KHÔNG dùng Multi-Agents độc lập.**
-> Tác giả repo này đã tốn hơn \$40 tiền API token chỉ để nhận ra bài học: thả cho các agent độc lập tự giao tiếp ngang hàng (peer-to-peer multi-agents) sẽ dẫn tới vòng lặp vô tận, lệch hợp đồng dữ liệu, xung đột ghi đè code và cháy sạch quota. Hãy luôn duy trì mô hình 1 Điều phối viên chính (Coordinator) giao việc cho các Subagent phạm vi hẹp có ranh giới glob cô lập và prompt hợp đồng chặt chẽ.
+> **Crucial Architectural Rule: Use Single Coordinator + Ephemeral Subagents ONLY — Avoid Multi-Agent Systems.**
+> Even when configured with a dedicated orchestrator and discrete roles, **traditional multi-agent systems remain prohibitively expensive and slow**. The creator of this repository spent over \$40 in API tokens and countless wasted hours learning this first-hand: persistent multi-agent loops, cross-agent chatter, redundant context synchronization, and multi-turn state handoffs cause compounding token burn, merge conflicts, and coordination paralysis.
+>
+> **The Lean Subagent Approach:** A single strong Lead Coordinator runs the conversation and dispatches **narrow, ephemeral subagents** powered by economical budget models (`flash`, `haiku`, `mini`). Subagents never communicate with each other; each subagent receives a self-contained contract brief scoped to an isolated file glob, produces verifiable evidence (diff, test output, or rendered HTML), and immediately terminates.
 
 ## Included Tooling & Companions
 

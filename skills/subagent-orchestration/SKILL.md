@@ -8,8 +8,8 @@ description: Orchestrates a Danh Method feature from one main agent that dispatc
 Agent chính (phiên đang nói chuyện với người phụ trách sản phẩm) là **người điều phối** — vai điều phối sản phẩm (Lead Coordinator): viết tài liệu, viết brief, giao việc, kiểm kết quả, báo cáo. Subagent làm việc tay chân trong phạm vi hẹp và trả kết quả về. Thay cho mô hình nhiều agent độc lập vốn tốn công đồng bộ.
 
 > [!WARNING]
-> **Khuyến cáo sống còn: Chỉ phát triển sản phẩm với Coordinator + Subagents, KHÔNG dùng Multi-Agents.**  
-> Người viết ra repo này đã phải trả giá hơn \$40 tiền API token chỉ để nhận ra bài học: thả cho các agent chạy độc lập, tự trò chuyện ngang hàng sẽ gây dẫm chân lên code, lệch schema và vòng lặp cháy sạch quota mà không ra được sản phẩm. Mô hình 1 Coordinator điều phối các Subagent thi hành độc lập theo glob là con đường duy nhất kiểm soát được chất lượng và chi phí.
+> **Khuyến cáo sống còn: Chỉ phát triển sản phẩm với Coordinator + Subagents ngắn hạn (ephemeral), KHÔNG dùng Multi-Agents.**  
+> Kể cả khi chạy hệ thống multi-agents có orchestrator điều phối và phân chia role rõ ràng, thực tế vẫn **cực kỳ tốn kém và mất thời gian**. Người viết ra repo này đã phải trả giá hơn \$40 tiền API token và vô số giờ debug để nhận ra bài học: các agent duy trì session độc lập tự động chat/sync trạng thái sẽ làm phình to context theo cấp số nhân, trễ điều phối và cháy sạch quota. Mô hình tinh gọn duy nhất hiệu quả: 1 Coordinator điều phối các Subagent ngắn hạn (ephemeral), phạm vi hẹp cô lập theo glob, chạy model tiết kiệm (`flash` / `haiku` / `mini`), nộp bằng chứng xong là kết thúc ngay.
 
 ## 1. Khi nào chia, khi nào không
 

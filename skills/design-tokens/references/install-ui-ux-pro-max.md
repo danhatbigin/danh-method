@@ -1,6 +1,6 @@
 # Cài ui-ux-pro-max — xin phép, lý do, cách cài
 
-Plugin: **ui-ux-pro-max** (nextlevelbuilder/ui-ux-pro-max-skill, MIT). Bản đã dùng ở MiVida: 2.15.0.
+Plugin: **ui-ux-pro-max** (nextlevelbuilder/ui-ux-pro-max-skill, MIT). Bản đã kiểm: 2.15.0.
 
 ## Vì sao Danh Method cần nó (nói với người dùng đúng ý này)
 

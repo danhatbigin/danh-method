@@ -25,21 +25,36 @@ Phương pháp của Danh Nguyen (Head of Design, Bigin) để một designer t�
 
 ## 2. Vòng đời một feature (bản đồ skill)
 
+### 2.1 Chọn đường trước (theo diff thật, không theo cảm giác)
+
+| Đường | Khi nào | Quy trình |
+|---|---|---|
+| **Nhẹ** | Tier skip/0/1 và không thêm/đổi đường ghi dữ liệu | Một agent làm; verifier một lần cuối; người phụ trách xem giao diện. Không cần kịch bản/test khoá/review riêng; ghi đường + dòng verify trong log là đủ |
+| **Vừa** | Tier 2, không thêm/đổi đường ghi dữ liệu, không chạm vùng rủi ro | Kịch bản + test khoá; `slice-implementer` + một lượt review độc lập toàn diff; kiểm theo vùng một lần sau freeze |
+| **Đủ** | Tier 3, hoặc thêm/đổi đường ghi dữ liệu, migration, quyền, tiền, dữ liệu nhạy cảm | Toàn bộ: bất biến + bản đồ ghi, ba vai trò Test/Fix/Review, review hội tụ (2 lượt sạch cùng commit), PR gate, gói review owner |
+
+- Đầu task điều phối khai đường vào `.danh/track.json` của repo code (`{"track":"Vừa","task":"…"}`) hoặc dòng `Đường: …` trong TASKS.
+- Lúc freeze chạy `node .verify/verify.mjs --classify` trên diff thật. Nặng hơn đường đã khai → **tự nâng** và làm bù bước còn thiếu. Chỉ nâng, không hạ; muốn hạ phải có người phụ trách sản phẩm (nghiệp vụ) hoặc owner (kỹ thuật) ghi lý do.
+- "Đường ghi dữ liệu" tính cả server action, domain, repository, job, migration; một file UI gọi action ghi mới cũng tính.
+- Lý do: mức nặng của quy trình phải trả đúng cho rủi ro. Việc UI thuần mà chạy pipeline đầy đủ thì tốn vô ích; việc ghi dữ liệu mà chạy đường nhẹ thì lỗi tranh chấp, quy mô, quyền chỉ lộ ra ở review, mỗi trường hợp tốn một vòng.
+
+### 2.2 Các bước
+
 | Bước | Việc | Skill | Gate (ai duyệt) |
 |---|---|---|---|
-| 0 | Dựng repo spec, hồ sơ người dùng, config dự án | `project-setup` | — |
-| 0.5 | Stage 2: chốt token (màu, font, bo góc, khoảng cách, light/dark), dựng **trang HTML token** để duyệt | `design-tokens` | Duyệt token (G0) |
-| 1 | Stage 1–3: hiểu vấn đề, quyết định cấu trúc, viết PRD / USER_FLOW / GUIDANCE / TASKS | `feature-spec` | Người phụ trách sản phẩm duyệt chữ (D/Q) |
-| 2 | Stage 4: preview component thật + token controls MD/JSON; điều phối chụp ảnh/REVIEW | `design-prototype` | Duyệt preview (G1) |
-| 3 | Viết **prompt hợp đồng** cho phần thi hành (design / logic / UI tách riêng) | `prompt-contract` | Duyệt Q/A đã chốt (G2) |
-| 4 | Thi hành: một task hoặc một batch, TDD, verify theo tier, git an toàn | `execute-tasks` | Điều kiện dừng viết sẵn |
-| 5 | Điều phối subagent theo bề mặt, reviewer chỉ đọc diff | `subagent-orchestration` | Kiểm bằng chứng; G3 sau Stage 6 |
-| 6 | Review, truy nguyên nhân, báo cáo issue → nguyên nhân → kết quả → giải pháp | `review-report` | — |
-| 7 | Stage 5–6: audit UX, nghiệm thu trên bản chạy thật, ghi ACCEPTANCE trung thực | `design-review` | Người phụ trách sản phẩm chấp nhận; sau đó owner review G3 |
+| 0 | Dựng repo spec, hồ sơ người dùng, config dự án (vai PO / owner kỹ thuật, runtime verify) | `project-setup` | — |
+| 0.5 | Chốt token, trang token để duyệt | `design-tokens` | G0 token |
+| 1 | Stage 1–3: PRD / USER_FLOW / GUIDANCE (**bất biến + bản đồ ghi**) / TASKS | `feature-spec` | Người phụ trách duyệt chữ (D/Q); owner duyệt bất biến |
+| 1.5 | **Kịch bản** (SCENARIOS) trình bằng sơ đồ trực quan — đường Vừa/Đủ | `feature-spec` → `scenario-tests` | PO duyệt nghiệp vụ, owner duyệt kỹ thuật |
+| 2 | Preview component thật ‖ **test khoá** do `test-translator` dịch từ kịch bản | `design-prototype` ‖ `scenario-tests` | G1 preview; manifest khoá |
+| 3 | Prompt hợp đồng / AGENT-RUN (allowlist, freeze, mức cách ly thật) | `prompt-contract` | G2 |
+| 4 | Fix: một `slice-implementer` làm trọn lát dọc (Nhẹ: `ui-implementer`/một agent) | `execute-tasks` | Điều kiện dừng viết sẵn |
+| 5 | Freeze → điều phối chạy verifier → review toàn PR theo bất biến → ledger theo nhóm nguyên nhân → sửa cả nhóm | `subagent-orchestration`, `review-report` | Đủ: review hội tụ |
+| 6 | Nghiệm thu theo AC + kịch bản, rồi **một gói review** cho owner | `design-review`, `review-report` | Người phụ trách chấp nhận; owner G3 |
 
-Thứ tự thật: bước 0.5 làm một lần đầu dự án (và khi token đổi lớn), có thể chạy song song với bước 1 của feature đầu tiên; nhưng prototype (bước 2) phải dùng token đã duyệt.
+Lệch chuẩn ở bất kỳ bước nào → **Spec Issue** quay về bước 1.5, không sửa test cho khớp code. Sau 3 vòng review vẫn có major mới → quay về bước 1 (bất biến/bản đồ ghi), không vá vòng 4.
 
-Không nhảy bước. Không code trước khi có tài liệu được duyệt. Không thi hành trước khi preview được duyệt. Ngoại lệ chỉ khi người phụ trách sản phẩm nói rõ trong lượt này.
+Thứ tự thật: bước 0.5 làm một lần đầu dự án; prototype phải dùng token đã duyệt. Không nhảy bước. Không code trước khi có tài liệu được duyệt. Không thi hành trước khi preview được duyệt. Ngoại lệ chỉ khi người phụ trách sản phẩm nói rõ trong lượt này.
 
 ## 3. Triết lý (đọc kỹ `references/principles.md` khi cần lý do)
 
@@ -97,21 +112,14 @@ Hai trục riêng (D3):
 - Báo người phụ trách tối đa **3 điểm đạt / 3 điểm cần sửa / 1 quyết định**, ưu tiên ảnh/graph và số đo thật; đây là sở thích làm việc.
 - Stage 6 đạt chưa phải merge-ready: cần `--pr` PASS, Stage 6, bằng chứng từng AC và hết blocker; sau đó còn vòng owner review G3. Không tự merge khi chưa có quyền.
 
-## 9. Tự động nhận diện giai đoạn & Đề xuất Subagent (detect-stage)
+## 9. Tự động nhận diện giai đoạn & trigger
 
-Khi bắt đầu một phiên làm việc hoặc khi người dùng hỏi *"đang ở bước nào"*, *"làm gì tiếp theo"*, *"chạy command nào"*:
-1. Chạy công cụ nhận diện tự động:
-   ```bash
-   node skills/danh-method/scripts/detect-stage.mjs [--spec <docs>] [--code <codeRoot>] [--feature <tên>] [--json]
-   ```
-2. Công cụ quét cây thư mục thật để xác định chính xác giai đoạn:
-   - **Stage 0**: Setup dự án & operator profile (`process/project.md`, `process/operator-*.md`).
-   - **Stage 0.5**: Chốt Design Tokens & Gate G0 trên Token Playground (`design-system/TOKENS-NOTES.md`).
-   - **Stage 1–3**: Đặc tả Feature PRD / USER_FLOW / GUIDANCE / TASKS.
-   - **Stage 4A**: Thi hành song song Prototype HTML (`design-prototyper`) và Logic Backend (`logic-implementer`).
-   - **Stage 4B**: Điều phối viên chụp ảnh nghiệm thu Preview và chốt Gate G1 (`REVIEW.md`).
-   - **Stage 4C**: Ráp giao diện UI hoàn chỉnh (`ui-implementer`).
-   - **Stage 5**: Đánh giá mã nguồn chỉ đọc (`code-reviewer`).
-   - **Stage 6**: Nghiệm thu trung thực trình duyệt trên DB bản sao (`acceptance-tester`).
-   - **COMPLETE**: Đã hoàn tất mọi bước, chờ owner duyệt Gate G3 và merge.
-3. Khi ở các giai đoạn cần subagent (4A, 4C, 5, 6), coordinator **phải chủ động đề xuất** subagent kèm **model tiết kiệm** (`flash` / `haiku` / `mini`) và chờ người dùng chọn/duyệt trước khi spawn (chi tiết tại `skills/subagent-orchestration/SKILL.md`).
+Hook `pipeline-nudge` (SessionStart + mỗi lần người dùng gửi lệnh) tự nhắc khi trạng thái đổi: kịch bản đã duyệt chưa có test khoá, Spec Issue đang mở, diff nặng hơn đường đã khai, task chưa khai đường. Hook `guard-spec-tests` chặn ghi test khoá ngoài cửa sổ Test. Codex/Antigravity/AionUI không có hook: chạy tay `node <plugin>/hooks/scripts/pipeline-nudge.mjs --json`.
+
+Khi người dùng hỏi *"đang ở bước nào"*, *"làm gì tiếp"*:
+```bash
+node skills/danh-method/scripts/detect-stage.mjs [--spec <docs>] [--code <codeRoot>] [--feature <tên>] [--json]
+```
+Các giai đoạn: **0** setup · **0.5** token G0 · **1-3** đặc tả · **4A** prototype ‖ test-translator · **4B** điều phối chụp ảnh, duyệt G1 · **3S** chưa có kịch bản được duyệt (chặn implementer, đường Vừa/Đủ) · **3T** test khoá chưa đủ (chặn implementer) · **4C** `slice-implementer` (Nhẹ: `ui-implementer`) · **5** review toàn PR (`code-reviewer`) · **6** nghiệm thu (`acceptance-tester`) · **COMPLETE** chờ owner G3.
+
+Ở giai đoạn cần subagent, coordinator **chủ động đề xuất** subagent kèm model (rẻ cho việc hẹp; giữ model mạnh cho `test-translator` và `slice-implementer` vì chúng quyết định chất lượng mọi vòng sau) và chờ người dùng duyệt trước khi spawn.

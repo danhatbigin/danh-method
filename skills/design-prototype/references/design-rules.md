@@ -15,7 +15,7 @@
 - Dashboard: mỗi khối trả lời một câu hỏi nghiệp vụ của role đó; bỏ KPI trang trí.
 - Bề mặt khách hàng **không bao giờ** thấy: lý do nội bộ, version cũ, dữ liệu nháp, điểm số kiểu chấm điểm.
 
-## Ví dụ luật riêng đã chốt ở MiVida (chép vào `process/project.md` của project mới nếu muốn dùng)
+## Ví dụ luật riêng đã chốt ở dự án gốc (chép vào `process/project.md` của project mới nếu muốn dùng)
 
 - **No Border:** tách lớp bằng nền, khoảng cách, bóng; không `border`, `divide-*`, `ring-*` trang trí, `Separator`.
 - Một màu đỏ thật dùng chung cho red flag, lỗi, hành động dừng/xoá.

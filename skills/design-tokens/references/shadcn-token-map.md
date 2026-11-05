@@ -18,7 +18,7 @@ Tên theo shadcn/ui để component có sẵn dùng được ngay. Project dùng
 | `--chart-1…5` | Biểu đồ | Phân biệt bằng độ sáng, không chỉ bằng hue |
 | `--sidebar*` | Điều hướng | Theo cùng logic card/primary/accent |
 
-Thêm theo dự án (ví dụ MiVida): `--red-flag`, `--attention`, `--surface-raised/sunken`, `--elevation-1…3`, `--font-sans`, `--font-heading`.
+Thêm theo dự án (ví dụ): `--red-flag`, `--attention`, `--surface-raised/sunken`, `--elevation-1…3`, `--font-sans`, `--font-heading`.
 
 ## Map từ Stage 2
 

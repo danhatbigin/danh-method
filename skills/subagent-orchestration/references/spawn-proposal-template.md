@@ -32,7 +32,7 @@ Trước khi gọi lệnh `invoke_subagent` để mở bất kỳ subagent nào,
 1. **Mặc định là Model tiết kiệm (`flash` / `haiku` / `mini`)**:
    - Tác vụ subagent trong Danh Method luôn là tác vụ hẹp, có hợp đồng input/output chặt chẽ và glob sở hữu cô lập.
    - Sử dụng model tiết kiệm giúp bảo toàn quota, giảm chi phí từ 5x–10x và tốc độ phản hồi nhanh hơn.
-   - Thích hợp cho: `design-prototyper` (lắp ghép component theo template), `logic-implementer` (viết CRUD/schema/service theo spec), `code-reviewer` (đối chiếu checklist diff), `acceptance-tester` (chạy script E2E/test checklist).
+   - Thích hợp cho: `design-prototyper` (lắp ghép component theo template), `ui-implementer` (UI thuần đường Nhẹ). Giữ model đủ mạnh cho `test-translator` và `slice-implementer`, `code-reviewer` (đối chiếu checklist diff), `acceptance-tester` (chạy script E2E/test checklist).
 
 2. **Khi nào đề xuất hoặc người dùng nâng lên Model mạnh (`pro` / `sonnet` / `inherit`)**:
    - Khi task đòi hỏi giải thuật phức tạp hoặc tái cấu trúc kiến trúc đa tầng.

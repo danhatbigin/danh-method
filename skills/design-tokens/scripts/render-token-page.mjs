@@ -5,7 +5,7 @@
 //
 // Dùng:
 //   node render-token-page.mjs --css <file.css> [--css <file2.css> ...] --out <tokens.html>
-//                              [--title "MiVida tokens"] [--note "Nguồn: packages/ui/src/styles"]
+//                              [--title "Product tokens"] [--note "Nguồn: packages/ui/src/styles"]
 //                              [--set "--font-sans=Plus Jakarta Sans, sans-serif"] ...
 //   --set: gán giá trị cho biến chỉ có lúc chạy (ví dụ next/font sinh --font-sans). Lặp lại được.
 //

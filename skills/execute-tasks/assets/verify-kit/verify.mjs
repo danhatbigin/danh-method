@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bigin-verify v1.1 — phân loại thay đổi thành "tier", chỉ chạy đúng bộ kiểm tra tier đó cần,
+// bigin-verify v1.2 — phân loại thay đổi thành "tier", chỉ chạy đúng bộ kiểm tra tier đó cần,
 // và báo trạng thái trung thực: PASS / FAIL / SKIPPED / NOT_CONFIGURED.
 // Không phụ thuộc thư viện nào. Cần: Node >= 18 và git.
 //
@@ -27,7 +27,7 @@ import crypto from 'node:crypto';
 import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
 const has = (n) => argv.includes(n);
@@ -39,7 +39,7 @@ const ROOT = (() => {
   catch { return path.resolve(HERE, '..'); }
 })();
 const P = (...a) => path.join(HERE, ...a);
-const ST = { PASS: 'PASS', FAIL: 'FAIL', SKIPPED: 'SKIPPED', NC: 'NOT_CONFIGURED' };
+const ST = { PASS: 'PASS', FAIL: 'FAIL', SKIPPED: 'SKIPPED', NC: 'NOT_CONFIGURED', PARTIAL: 'PARTIAL', ENV: 'ENV', BLOCKED: 'BLOCKED-SPEC' };
 const KIND_ORDER = ['skip', 'style', 'ui', 'ui+logic', 'test', 'logic', 'risk'];
 
 // ---------- glob ----------
@@ -199,7 +199,7 @@ function scriptMissing(cmd) {
 const mk = (cmd, extra = {}) => ({ cmd, kind: extra.kind || kindOf(cmd), status: undefined, ...extra });
 
 // Chạy test theo file (scoped có "tests"): chỉ các file test đã đổi, hoặc test có tên khớp với file nguồn đã đổi.
-// run chứa {files} (đường dẫn tương đối với relTo nếu có). Không khớp gì → SKIPPED; quá maxFiles → SKIPPED (chạy ở --pr).
+// run chứa {files}. Vùng dữ liệu cộng test khớp tên; chia lô maxFiles, không bỏ test.
 function listFiles(dirRel) {
   const out = []; const base = path.join(ROOT, dirRel);
   try { for (const e of fs.readdirSync(base, { recursive: true })) out.push(path.posix.join(dirRel, String(e).replace(/\\/g, '/'))); } catch { /* không có thư mục */ }
@@ -208,21 +208,32 @@ function listFiles(dirRel) {
 function testsFor(s, files) {
   const testGlob = s.tests;
   const inWhen = (f) => !s.when || matchAny(s.when, f);
-  const isTest = (f) => matchAny([testGlob], f);
+  if (s.when && !files.some(inWhen)) return [];
+  const isTest = (f) => matchAny(Array.isArray(testGlob) ? testGlob : [testGlob], f);
   const srcStems = files.filter((f) => inWhen(f) && !isTest(f))
     .map((f) => path.posix.basename(f).replace(/\.[^.]+$/, '').replace(/\.(test|spec)$/, '').toLowerCase()).filter((s2) => s2.length >= 4);
-  const dir = testGlob.split('*')[0].replace(/\/$/, '') || '.';
+  const dir = (Array.isArray(testGlob) ? testGlob[0] : testGlob).split('*')[0].replace(/\/$/, '') || '.';
   const all = listFiles(dir).filter(isTest);
   const picked = new Set([
     ...files.filter(isTest),
+    ...all.filter((test) => (cfg.areas || []).some((area) => files.some((file) => matchAny(area.sources, file)) && matchAny(area.tests, test))),
     ...all.filter((t) => { const b = path.posix.basename(t).toLowerCase(); return srcStems.some((st) => b.includes(st)); }),
   ]);
   const rel = (f) => s.relTo ? path.posix.relative(s.relTo, f) : f;
   if (!picked.size) return [{ cmd: `test (không có test khớp với thay đổi: ${testGlob})`, extra: { kind: 'test', status: ST.SKIPPED, reason: s.noMatchNote || 'không có test khớp với file đã đổi; test đầy đủ chạy ở --pr' } }];
-  const max = s.maxFiles ?? 12;
-  if (picked.size > max) return [{ cmd: `test (${picked.size} file)`, extra: { kind: 'test', status: ST.SKIPPED, reason: `khớp ${picked.size} file test (> ${max}); chạy ở --pr hoặc tăng maxFiles` } }];
-  const list = [...picked].map(rel).sort().join(' ');
-  return [{ cmd: s.run.replace('{files}', list), extra: { kind: 'test' } }];
+  const max = Math.max(1, Math.floor(s.maxFiles || 12));
+  const pickedFiles = [...picked].map(rel).sort();
+  const batches = [];
+  // Quote filenames, including Windows paths/spaces. No shell metacharacters accepted.
+  const quote = (file) => {
+    if (/["`$%&|<>^!\r\n]/.test(file)) throw new Error('unsafe test filename');
+    return `"${file}"`;
+  };
+  for (let i = 0; i < pickedFiles.length; i += max) {
+    const batch = pickedFiles.slice(i, i + max);
+    batches.push({ cmd: s.run.replace('{files}', batch.map(quote).join(' ')), extra: { kind: 'test', requiresDb: s.requiresDb, batch: `${Math.floor(i / max) + 1}/${Math.ceil(pickedFiles.length / max)}` } });
+  }
+  return batches;
 }
 
 function commandsFor(tier, files) {
@@ -235,7 +246,7 @@ function commandsFor(tier, files) {
     (tc.run || []).forEach((c) => add(c));
     for (const s of tc.scoped || []) {
       if (s.tests) { for (const c of testsFor(s, files)) add(c.cmd, c.extra); continue; }
-      if (s.when && files.some((f) => matchAny(s.when, f))) add(s.run);
+      if (s.when && files.some((f) => matchAny(s.when, f))) add(s.run, { requiresDb: s.requiresDb });
       if (s.re) {
         const re = new RegExp(s.re); const done = new Set();
         for (const f of files) {
@@ -260,17 +271,49 @@ function planChecks(c, files) {
     const prHasTest = (cfg.pr?.run || []).some((x) => kindOf(x) === 'test' || /\bcheck\b/.test(x));
     checks.push(prHasTest ? { cmd: 'test', kind: 'test', status: ST.SKIPPED, reason: 'test đầy đủ chuyển sang PR gate (node .verify/verify.mjs --pr)' } : { cmd: 'test', kind: 'test', status: ST.NC, reason: `chưa cấu hình test cho thay đổi tier ${c.tier}` });
   }
+  if (c.tier >= 1 && fs.existsSync(path.join(ROOT, 'tools/spec-guard.mjs')) && files.some((f) => matchAny(['**/tests/spec/**', 'tests/spec-manifest.json', 'tools/spec-guard*.mjs'], f))) checks.push(mk('node tools/spec-guard.mjs', { kind: 'spec' }));
+  if (c.tier >= 1 && fs.existsSync(path.join(ROOT, 'tools/spec-guard.selftest.mjs')) && files.some((f) => matchAny(['tools/spec-guard*.mjs'], f))) checks.push(mk('node tools/spec-guard.selftest.mjs', { kind: 'spec' }));
   return checks;
 }
 
 // ---------- chạy ----------
 const NOT_FOUND = /is not recognized as an internal or external command|command not found|not found: |ENOENT/i;
 const OFFLINE = /ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ETIMEDOUT|ECONNRESET|getaddrinfo|fetch failed|network|offline/i;
+// Read-only PostgreSQL handshake/query. Never prints URLs, credentials or dump contents.
+function dbPreflight() {
+  // Tên biến môi trường lấy từ config.db (do project-setup hỏi người dùng); không đoán.
+  const db = cfg.db || {};
+  const dumpEnv = db.dumpEnv === undefined ? 'TEST_DB_DUMP' : db.dumpEnv;
+  if (dumpEnv) {
+    const dump = process.env[dumpEnv];
+    try { if (!dump || !fs.statSync(dump).isFile()) return `${dumpEnv} must name an existing file`; }
+    catch { return `${dumpEnv} must name an existing file`; }
+  }
+  const urlEnvs = db.urlEnvs || ['TEST_ADMIN_DATABASE_URL', 'DATABASE_URL'];
+  const urls = [...new Set(urlEnvs.map((n) => process.env[n]).filter(Boolean))];
+  if (!urls.length) return `${urlEnvs.join(' / ')} missing`;
+  for (const url of urls) { try { if (!/^postgres(?:ql)?:$/.test(new URL(url).protocol)) return 'invalid PostgreSQL URL'; } catch { return 'invalid PostgreSQL URL'; } }
+  const probe = `const {createRequire}=require('node:module');
+    const path=require('node:path');
+    const req=createRequire(path.join(process.cwd(),process.env.VERIFY_DB_CLIENT_FROM||'package.json'));
+    (async()=>{ const {Client}=req('pg');
+      for(const connectionString of JSON.parse(process.env.VERIFY_DB_URLS)) {
+        const client=new Client({connectionString,connectionTimeoutMillis:3000,query_timeout:3000});
+        try { await client.connect(); await client.query('select 1'); } finally { await client.end(); }
+      }
+    })().catch(()=>process.exitCode=1);`;
+  const result = spawnSync(process.execPath, ['-e', probe], { cwd: ROOT, encoding: 'utf8', timeout: 12000, env: { ...process.env, VERIFY_DB_URLS: JSON.stringify(urls), VERIFY_DB_CLIENT_FROM: db.clientFrom || 'package.json' } });
+  return result.status === 0 ? null : 'PostgreSQL connection/query unavailable (or pg client missing)';
+}
+function needsDb(k) {
+  const auto = cfg.db?.autoDetect ? new RegExp(cfg.db.autoDetect) : /db:test/;
+  return k.requiresDb === true || (k.kind === 'test' && auto.test(k.cmd));
+}
 function runOne(k, opts = {}) {
-  const t0 = Date.now();
-  // A5.4/D8: full PR checks have an independent budget; development stays scoped.
-  const configured = has('--pr') ? cfg.prTimeoutSec : cfg.timeoutSec;
+  if (needsDb(k)) { const issue = dbPreflight(); if (issue) { k.status = ST.ENV; k.reason = issue; return; } }
+  const configured = (has('--pr') || has('--release')) ? cfg.prTimeoutSec : cfg.timeoutSec;
   const timeoutSec = Number.isFinite(configured) && configured > 0 ? configured : 900;
+  const t0 = Date.now();
   const r = spawnSync(k.cmd, { shell: true, cwd: ROOT, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024, timeout: timeoutSec * 1000, env: { ...process.env, CI: '1', FORCE_COLOR: '0' } });
   k.secs = ((Date.now() - t0) / 1000).toFixed(1);
   const out = ((r.stdout || '') + (r.stderr || '')).trim();
@@ -278,13 +321,15 @@ function runOne(k, opts = {}) {
   if (r.status === 0) { k.status = ST.PASS; return; }
   if (r.status === 127 || r.status === 9009 || (out.length < 600 && NOT_FOUND.test(out))) { k.status = ST.NC; k.reason = 'lệnh/công cụ không có trên máy này'; k.tail = out.split('\n').slice(-3).join('\n'); return; }
   if (opts.offlineSkips && OFFLINE.test(out)) { k.status = ST.SKIPPED; k.reason = 'không có mạng — chưa kiểm tra được'; return; }
+  const known = (cfg.knownFailures || []).find((failure) => failure.command === k.cmd && failure.reference && failure.match && new RegExp(failure.match).test(out));
+  if (known) { k.status = ST.SKIPPED; k.reason = `known failure on main: ${known.reference} (not charged to fix budget)`; return; }
   k.status = ST.FAIL; k.tail = out.split('\n').slice(-(cfg.failTailLines || 40)).join('\n');
 }
 function runChecks(checks, opts = {}) {
   let failed = false;
   for (const k of checks) {
     if (k.status) continue;
-    if (failed) { k.status = ST.SKIPPED; k.reason = 'bỏ qua vì check trước đã FAIL'; continue; }
+    if (failed && !opts.continueOnFailure) { k.status = ST.SKIPPED; k.reason = 'bỏ qua vì check trước đã FAIL'; continue; }
     runOne(k, opts);
     if (k.status === ST.FAIL) failed = true;
   }
@@ -292,19 +337,22 @@ function runChecks(checks, opts = {}) {
 }
 const count = (checks, s) => checks.filter((k) => k.status === s).length;
 function overall(checks) {
+  if (count(checks, ST.BLOCKED)) return ST.BLOCKED;
   if (count(checks, ST.FAIL)) return ST.FAIL;
+  if (count(checks, ST.ENV)) return ST.ENV;
   if (count(checks, ST.NC)) return ST.NC;
+  if (count(checks, ST.SKIPPED)) return ST.PARTIAL;
   if (!checks.length || !count(checks, ST.PASS)) return ST.SKIPPED;
   return ST.PASS;
 }
-const mark = { PASS: '✓ PASS         ', FAIL: '✗ FAIL         ', SKIPPED: '– SKIPPED      ', NOT_CONFIGURED: '? NOT_CONFIGURED' };
+const mark = { PARTIAL: '~ PARTIAL      ', ENV: '? ENV          ', 'BLOCKED-SPEC': '! BLOCKED-SPEC ', PASS: '✓ PASS         ', FAIL: '✗ FAIL         ', SKIPPED: '– SKIPPED      ', NOT_CONFIGURED: '? NOT_CONFIGURED' };
 function printChecks(checks) {
   for (const k of checks) {
-    console.log(`  ${mark[k.status]} ${k.cmd}${k.secs ? ` (${k.secs}s)` : ''}${k.reason ? ` — ${k.reason}` : ''}`);
+    console.log(`  ${mark[k.status]} ${k.cmd}${k.batch ? ` [batch ${k.batch}]` : ''}${k.secs ? ` (${k.secs}s)` : ''}${k.reason ? ` — ${k.reason}` : ''}`);
     if (k.status === ST.FAIL && k.tail) console.log(k.tail.split('\n').map((l) => '      ' + l).join('\n'));
   }
 }
-const summaryLine = (checks) => ['PASS', 'FAIL', 'SKIPPED', 'NOT_CONFIGURED'].map((s) => [s, count(checks, s)]).filter(([, n]) => n).map(([s, n]) => `${n} ${s}`).join(', ');
+const summaryLine = (checks) => ['PASS', 'FAIL', 'SKIPPED', 'NOT_CONFIGURED', 'ENV', 'BLOCKED-SPEC'].map((s) => [s, count(checks, s)]).filter(([, n]) => n).map(([s, n]) => `${n} ${s}`).join(', ');
 
 // ---------- bảo mật bắt buộc ----------
 const SECRET_PATTERNS = [
@@ -337,7 +385,7 @@ function securityChecks(scope, files, all) {
     const applies = all || s.always || (s.when && files.some((f) => matchAny(s.when, f)));
     if (!applies) continue;
     if (s.builtin === 'secrets') { out.push(secretsScan(scope)); continue; }
-    const k = mk(s.run, { kind: 'security', offlineSkips: s.offlineSkips });
+    const k = mk(s.run, { kind: 'security', offlineSkips: s.offlineSkips, requiresDb: s.requiresDb });
     const miss = scriptMissing(k.cmd); if (miss) { k.status = ST.NC; k.reason = miss; }
     if (!k.status) runOne(k, { offlineSkips: s.offlineSkips });
     k.cmd = `${s.name || 'security'}: ${k.cmd}`;
@@ -448,14 +496,15 @@ async function main() {
   if (has('--doctor')) { doctor(); return 0; }
 
   const strict = has('--ci') || has('--pr') || has('--release');
-  const exitFor = (st) => (st === ST.FAIL ? 1 : st === ST.NC ? (strict ? 1 : 3) : 0);
+  const exitFor = (st) => (st === ST.FAIL ? 1 : st === ST.PARTIAL ? 4 : st === ST.ENV ? 5 : st === ST.BLOCKED ? 6 : st === ST.NC ? (strict ? 1 : 3) : 0);
   const save = (obj) => { try { fs.writeFileSync(P('last.json'), JSON.stringify({ version: VERSION, at: new Date().toISOString(), ...obj }, null, 1)); } catch {} };
 
   if (has('--batch') || has('--pr') || has('--release')) {
     const key = has('--release') ? 'release' : has('--pr') ? 'pr' : 'batch';
-    const list = (cfg[key]?.run?.length ? cfg[key].run : key === 'release' ? (cfg.pr?.run || []).concat(cfg.batch?.run || []) : []);
+    // Moi lenh mang co requiresDb cua nhom cau hinh no den tu: --release khong co release.run thi dung pr.run (co cua pr) + batch.run (co cua batch).
+    const group = (k) => (cfg[k]?.run || []).map((c) => mk(c, cfg[k]?.requiresDb ? { requiresDb: true } : {}));
     if (cfg[key]?.note) console.log(`note: ${cfg[key].note}`);
-    const checks = list.map((c) => mk(c)); for (const k of checks) { const m = scriptMissing(k.cmd); if (m) { k.status = ST.NC; k.reason = m; } }
+    const checks = cfg[key]?.run?.length ? group(key) : key === 'release' ? [...group('pr'), ...group('batch')] : []; for (const k of checks) { const m = scriptMissing(k.cmd); if (m) { k.status = ST.NC; k.reason = m; } }
     if (!checks.length) checks.push({ cmd: key, kind: 'other', status: ST.NC, reason: `chưa cấu hình "${key}" trong .verify/config.json` });
     if (has('--dry')) { checks.forEach((k) => console.log('would run:', k.cmd)); return 0; }
     runChecks(checks);
@@ -483,12 +532,13 @@ async function main() {
   if (has('--dry')) { checks.forEach((k) => console.log(`would run: ${k.cmd}${k.status ? ` [${k.status}: ${k.reason}]` : ''}`)); return 0; }
 
   if (!checks.length && !c.skipOnly) checks.push({ cmd: `tier ${c.tier}`, kind: 'other', status: ST.NC, reason: 'chưa cấu hình lệnh kiểm tra nào cho tier này' });
-  runChecks(checks);
+  runChecks(checks, { continueOnFailure: c.tier >= 2 });
   const sec = securityChecks(scope, c.files, false);
   printChecks(checks);
   if (sec.length) { console.log('  bảo mật (bắt buộc):'); printChecks(sec); }
-  let st = c.skipOnly ? ST.SKIPPED : overall(checks);
-  if (count(sec, ST.FAIL)) st = ST.FAIL; else if (st !== ST.FAIL && count(sec, ST.NC)) st = ST.NC;
+  if ((cfg.blockedSpec || []).length) checks.push({ cmd: 'Spec Issue', status: ST.BLOCKED, reason: cfg.blockedSpec.join(', ') });
+  let st = c.skipOnly && !checks.length ? ST.SKIPPED : overall([...checks, ...sec]);
+  if (c.skipOnly && (count(sec, ST.FAIL) || count(sec, ST.ENV) || count(sec, ST.NC))) st = overall(sec);
   const tail = [summaryLine(checks), sec.length ? `security: ${overall(sec)}` : ''].filter(Boolean).join(' · ');
   console.log(`verify: tier ${c.skipOnly ? 'skip' : c.tier} · ${st}${tail ? ` · ${tail}` : ''}`);
   save({ mode: 'dev', tier: c.tier, kind: c.kind, status: st, scope: c.source, files: c.count, checks: [...checks, ...sec].map(({ tail: _t, ...k }) => k) });

@@ -22,8 +22,15 @@ Nguyên tắc: **tái dùng trước, viết mới sau.** Component UI lấy t�
 ## 4. View model
 - Tên hàm, đầu vào, đầu ra; đọc trong một lần (không N+1); có test trần truy vấn.
 
-## 5. Bẫy
-- <ví dụ MiVida: "activities bị ghi đè cả mảng" — luôn merge, không replace>
+## 5. Bất biến + bản đồ ghi (bắt buộc khi feature ghi dữ liệu; mẫu `data-invariants-template.md`)
+| Bảng | Mọi writer (hàm/action/job/helper/đường tạo dữ liệu ban đầu) | Khoá (thứ tự) | Token | Vai trò × trạng thái | INV áp dụng |
+|---|---|---|---|---|---|
+- Ngân sách quy mô theo màn: trần dòng SQL đọc, dòng hydrate, số bind, bytes payload (tập lớn). Chưa được duyệt → ghi "đề xuất", không bịa số.
+- Quan hệ 1→N đổi: liệt kê schema/unique/FK, migration/backfill, repo, service, reader, UI/test phụ thuộc.
+- Owner kỹ thuật duyệt mục này; PO duyệt PRD không thay owner duyệt bất biến.
+
+## 6. Bẫy
+- <ví dụ: "một trường mảng bị ghi đè cả mảng" — luôn merge, không replace>
 - <ví dụ: refresh sau action không cập nhật props RSC nếu không revalidate>
 - Dữ liệu demo không nằm trong code; nằm trong file/dump ngoài repo.
 - Không đưa dữ liệu nhạy cảm (PHI…) xuống client khi thiếu quyền — có test payload theo role.
@@ -36,4 +43,4 @@ Chèn vào GUIDANCE trước giao task:
 | Màn/caller | Hàm/type | Field ngày lọc | Mốc tham chiếu + múi giờ | Biên đầu/cuối (gồm/không gồm) | Đơn vị đếm | Null/thiếu | Breaking change + migration/caller |
 |---|---|---|---|---|---|---|---|
 
-Phân biệt member với order, không có dữ liệu với 0. Liệt kê test biên thời gian/quyền; commit type/interface an toàn trước tách nhánh logic/UI.
+Phân biệt member với order, không có dữ liệu với 0. Liệt kê test biên thời gian/quyền; commit type/interface an toàn trước khi chia lát.

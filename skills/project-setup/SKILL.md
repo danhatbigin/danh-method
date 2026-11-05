@@ -62,9 +62,23 @@ Trong repo code tạo 3 file trỏ về operator profile, và thêm chúng vào 
 - `CLAUDE.local.md` (Claude Code), `AGENTS.override.md` (Codex), `GEMINI.md` (Antigravity) — nội dung: "Đọc `<đường dẫn spec>/process/operator-<tên>.md` và `process/project.md` trước mọi việc." Nếu `GEMINI.md` đã được track thì chỉ nhắc người dùng, không sửa.
 - Với Codex/Antigravity/AionUI không cài được plugin: chép `portable/AGENTS.md` / `portable/GEMINI.md` của plugin vào repo spec `process/` và trỏ tới đó.
 
-## 6. Verify-kit (khi đã có repo code)
+## 6. Verify-kit và runtime DB (khi đã có repo code)
 
-Hỏi trước, rồi cài theo `execute-tasks/assets/verify-kit/README.md` ở mode `local` (không đụng file đang track). Chạy `node .verify/verify.mjs --doctor` và báo kết quả nguyên văn.
+1. Hỏi trước, rồi cài theo `execute-tasks/assets/verify-kit/README.md` ở mode `local` (không đụng file đang track). Chạy `node .verify/verify.mjs --doctor` và báo kết quả nguyên văn.
+2. **Runtime DB do người dùng quyết, không đoán.** Lấy câu hỏi: `node .verify/verify-runtime.mjs --questions`. Hỏi người dùng (AskUserQuestion nếu có; designer thì nói bằng ngôn ngữ thường: "test có cần cơ sở dữ liệu thật không", "dữ liệu mẫu để ở đâu"…):
+   - Test có cần DB thật không? (không → bỏ qua runtime)
+   - DB chạy bằng gì: container Docker tạo/xoá mỗi lượt, DB có sẵn trên máy, hay dịch vụ từ xa?
+   - Loại DB và image (nếu container).
+   - Dữ liệu mẫu: file dump ngoài repo / script seed / không có — và tên biến môi trường chứa đường dẫn.
+   - Tên biến môi trường chứa chuỗi kết nối (app, admin).
+   - Mặc định mỗi lượt: khôi phục từ baseline (nhanh) hay archive thật (chậm, sát thực tế)?
+   - File/thư mục nào đổi thì baseline phải dựng lại (migration, seed).
+   - Trần thời gian cổng PR; nơi lưu profile thời gian (ngoài repo source).
+3. Ghi câu trả lời ra JSON rồi `node .verify/verify-runtime.mjs --init <answers.json>` → `.verify/runtime.json`. Đồng bộ `db` trong `.verify/config.json` (`dumpEnv`, `urlEnvs`, `clientFrom`, `autoDetect`) và `timeoutSec` theo cùng câu trả lời. Ghi tóm tắt vào `process/project.md` §Kiểm tra.
+4. Container cần `@testcontainers/postgresql` trong dự án: thiếu thì **xin phép** trước khi cài. Engine khác Postgres: dùng mode local/remote.
+5. Thêm `.danh/` vào `.gitignore` của repo code (trạng thái spec-lock, track, nudge).
+
+Lý do: mỗi dự án có cách dựng DB test khác nhau; đoán sai engine/nguồn dữ liệu sẽ cho ra ENV giả hoặc tệ hơn, chạy test trên dữ liệu không đúng.
 
 ## 7. Companion plugins (ui-ux-pro-max & Superpowers)
 

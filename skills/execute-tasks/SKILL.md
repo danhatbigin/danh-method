@@ -1,6 +1,6 @@
 ---
 name: execute-tasks
-description: Executes Danh Method tasks safely — one task or a declared batch from TASKS.md, fixed reading order, survey-first, TDD (red → green, role-based payload tests for sensitive data), verification by risk tier with the bundled verify-kit, safe git (no reset/stash/clean, revert by new commit), HANDOFF and daily log updates, and short reports. Use when an agent is told "làm TK02", "chạy liên tục X → Y", "thi hành theo prompt", "tiếp tục theo HANDOFF", or is implementing any task from a danh-method prompt.
+description: Executes Danh Method tasks safely — one task or a declared batch from TASKS.md, fixed reading order, survey-first, TDD (red → green, role-based payload tests for sensitive data), never editing locked scenario tests (Spec Issue instead), fixing by root-cause group with the failure taxonomy, honest verification by risk tier with the bundled verify-kit v1.2 (PARTIAL/ENV/BLOCKED-SPEC are never green) and an optional user-configured DB runtime, safe git (no reset/stash/clean, revert by new commit), HANDOFF and daily log updates, and short reports. Use when an agent is told "làm TK02", "chạy liên tục X → Y", "thi hành theo prompt", "tiếp tục theo HANDOFF", or is implementing any task from a danh-method prompt.
 ---
 
 # Thi hành task
@@ -24,12 +24,26 @@ description: Executes Danh Method tasks safely — one task or a declared batch 
 2. `node .verify/verify.mjs --task-start`.
 3. **TDD:** test đỏ trước cho mọi thay đổi hành vi (gồm nhánh lỗi, conflict, sai quyền). Dữ liệu nhạy cảm (sức khoẻ, tài chính, auth): bắt buộc test payload theo role chứng minh dữ liệu không xuống client khi không có quyền.
 4. Thay đổi nhỏ nhất đủ yêu cầu; tái dùng component/token/thư viện chung; không custom style; không dữ liệu mẫu trong code.
-5. `node .verify/verify.mjs` — **kiểm tra duy nhất** được chạy. FAIL → phân loại theo `references/failure-taxonomy.md`; lỗi code trong phạm vi sửa tối đa 1 lần hoặc ngân sách đã cấp, vẫn FAIL thì dừng và báo. Không tự chạy full suite, e2e, build, Playwright ngoài script; cần thì xin người giao chạy grant. Chi tiết: `assets/verify-kit/POLICY.md`.
+5. `node .verify/verify.mjs` — **kiểm tra duy nhất** được chạy (đường Vừa/Đủ: trong lúc làm chỉ verify có phạm vi; verifier sau freeze là việc của điều phối). FAIL → phân loại theo `references/failure-taxonomy.md` (ENV / FLAKY / PRE-EXISTING / SPEC / TEST / CODE) **trước** khi tính lượt; ENV khắc phục rồi chạy lại, không tính lượt. Lỗi code trong phạm vi: sửa theo nhóm nguyên nhân trong ngân sách đã cấp; vẫn FAIL thì dừng và báo. **Test khoá (`tests/spec/**`) lệch code → không sửa test**, mở Spec Issue (skill `scenario-tests`), ghi BLOCKED-SPEC, làm mục khác. Không tự chạy full suite, e2e, build, Playwright ngoài script; cần thì xin người giao chạy grant. Chi tiết: `assets/verify-kit/POLICY.md`.
 6. Tick `[x]` trong TASKS + 1 dòng kết quả có ngày; dòng CHANGELOG repo spec; commit + push repo spec (nếu là người được phép).
 7. Cập nhật HANDOFF (mẫu ở skill `prompt-contract`) + log ngày; commit nhỏ, message English (`feat:`, `fix:`, `docs:`); push nhánh feature.
 8. Báo 3–5 dòng (mục 6), rồi sang task tiếp nếu đang batch.
 
 Project chưa cài verify-kit: dùng lệnh kiểm tra trong `process/project.md` theo cùng tinh thần tier (UI thuần → typecheck; logic → + test liên quan; rủi ro cao → + kiểm có đích + bảo mật), và ghi rõ trong báo cáo.
+
+### 3.1 Trạng thái verify trung thực (v1.2)
+
+| Trạng thái | Nghĩa | Được báo xanh? |
+|---|---|---|
+| PASS | Các kiểm đã chạy đều qua | Có — đúng phạm vi đã chạy |
+| PARTIAL | Còn kiểm bị SKIPPED (ngoài docs-only) | Không |
+| ENV | Thiếu môi trường (DB, dump, mạng) | Không; khắc phục rồi chạy lại |
+| BLOCKED-SPEC | Có Spec Issue đang mở chặn mục này | Không |
+| NOT_CONFIGURED | Thiếu lệnh/công cụ | Không |
+
+- CI chưa chạy thật hoặc check bị bỏ qua ≠ CI xanh. PASS của commit cũ không thay kết quả HEAD mới. Báo đúng phạm vi đã kiểm và chưa kiểm.
+- Phần chưa kiểm phải có người nhận theo vai trò + hạn; chưa ai nhận thì ghi "chưa được nhận", không ghi "cho owner chạy …".
+- Test cần DB thật: chạy qua `node .verify/verify-runtime.mjs` theo `.verify/runtime.json` do người dùng trả lời (skill `project-setup` §6). Chưa có file → script thoát ENV kèm danh sách câu hỏi: **hỏi người dùng**, không tự đoán engine, nguồn dữ liệu, tên biến môi trường.
 
 ## 4. Điều kiện dừng (ngoài các điều này thì không dừng hỏi)
 

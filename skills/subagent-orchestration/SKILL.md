@@ -1,6 +1,6 @@
 ---
 name: subagent-orchestration
-description: Orchestrates a Danh Method feature from one main agent that dispatches subagents per surface (design-prototyper, logic-implementer, ui-implementer, code-reviewer, acceptance-tester) instead of running separate agent teams — writes each brief as a contract, assigns one branch/worktree and ownership per subagent, runs design and logic in parallel, keeps reviewers read-only, verifies results itself before reporting, and merges in a declared order. Use when someone says "subagent nha em", "chia agent", "chạy song song", "điều phối", "làm trọn feature", or when a feature has independent design/logic/UI work.
+description: Orchestrates a Danh Method feature from one main agent that dispatches short-lived subagents (design-prototyper, test-translator, slice-implementer, ui-implementer, code-reviewer, acceptance-tester) instead of agent teams — picks the Light/Medium/Full track from the real diff, writes an AGENT-RUN contract with file allowlists, keeps Test / Fix / Review in independent contexts, freezes the candidate and runs the verifier as the single verify point, runs observe → diagnose → fix by root-cause group, and drives full-PR convergence review on the Full track before one owner review package. Use when someone says "subagent nha em", "chia agent", "chạy song song", "điều phối", "làm trọn feature", "chọn đường", "freeze", "agent run", or when a feature has independent design/logic/UI work.
 ---
 
 # Điều phối bằng subagent
@@ -19,27 +19,59 @@ Không chia khi: các mục chạm cùng vùng code (sửa theo review → một
 
 ## 2. Vai subagent (định nghĩa trong `agents/` của plugin)
 
-| Subagent | Làm | Không làm | Ghi được |
-|---|---|---|---|
-| `design-prototyper` | Renderer component thật + token controls MD/JSON + provenance + DESIGN-NOTES | Code app, commit, chụp ảnh | `features/<f>/prototype`, `DESIGN-NOTES.md` |
-| `logic-implementer` | Schema, quyền, service, view model, test | UI mới | Worktree logic |
-| `ui-implementer` | Giao diện theo preview đã duyệt | Đổi logic/quyền, đổi token | Worktree UI (hoặc cùng worktree sau khi logic xong) |
-| `code-reviewer` | Đọc diff, tìm lỗi, báo cáo có mã | **Sửa code, checkout, commit, merge** | Chỉ file báo cáo review |
-| `acceptance-tester` | Nghiệm thu trình duyệt trên DB bản sao | Sửa mã sản phẩm | `ACCEPTANCE-<ngày>.md`, ảnh bằng chứng |
+| Subagent | Vai | Làm | Không làm | Ghi được |
+|---|---|---|---|---|
+| `design-prototyper` | Design | Renderer component thật + token controls + DESIGN-NOTES | Code app, chụp ảnh | `features/<f>/prototype`, `DESIGN-NOTES.md` |
+| `test-translator` | **Test** | Dịch kịch bản đã duyệt → test khoá đỏ-trước + manifest | Mã sản phẩm | `tests/spec/**`, manifest (trong cửa sổ spec-lock) |
+| `slice-implementer` | **Fix** | Trọn lát dọc DB → domain → action → UI (Vừa/Đủ) | Test khoá, manifest, budget, `.verify/` | Allowlist trong AGENT-RUN |
+| `ui-implementer` | Fix (Nhẹ) | UI thuần theo preview G1 | Thêm/đổi đường ghi dữ liệu | Worktree UI |
+| `code-reviewer` | **Review** | Review toàn PR theo bất biến, phản biện finding, tìm bỏ sót | **Sửa, checkout, commit, merge** | Chỉ báo cáo |
+| `acceptance-tester` | Nghiệm thu | AC + kịch bản trên DB bản sao | Mã sản phẩm | `ACCEPTANCE-<ngày>.md`, ảnh |
+
+**Điều phối** (agent chính): freeze, chạy verifier, giữ ledger, lập gói review; không tự quyết nghiệp vụ. Test / Fix / Review là **ba ngữ cảnh độc lập** (subagent context mới, chỉ cấp spec, quyết định, source và bằng chứng cần thiết; không kế thừa suy luận của Fix). Không tạo được ngữ cảnh độc lập → ghi BLOCKED ở bước review, không tự công nhận độc lập.
 
 ## 3. Nhịp chuẩn một feature
 
+### 3.1 Chọn đường
+
+Đọc `danh-method` §2.1. Khai đường đầu task vào `.danh/track.json` (`{"track":"Nhẹ|Vừa|Đủ","task":"…","declaredAt":"…"}`); lúc freeze chạy `node .verify/verify.mjs --classify`, nặng hơn thì nâng và làm bù. Hook `pipeline-nudge` nhắc khi chưa khai hoặc khai thấp.
+
+| Bước | Nhẹ | Vừa | Đủ |
+|---|---|---|---|
+| Bất biến + bản đồ ghi | — | Nếu có ghi dữ liệu thì đã là Đủ | Bắt buộc, owner duyệt |
+| Kịch bản + test khoá | — | Bắt buộc | Bắt buộc |
+| AGENT-RUN | Ghi đường + dòng verify trong log | Phần Đầu vào + Review | Đầy đủ |
+| Review | Không riêng | Một lượt toàn diff, độc lập | **Review hội tụ** (`review-report/references/review-convergence.md`) |
+| Verify | Một lần cuối | Theo vùng một lần sau freeze | Theo vùng sau freeze + PR gate (full suite) |
+
+### 3.2 Luồng (Vừa/Đủ)
+
 ```
-PRD duyệt → hợp đồng type/interface đã commit → tách nhánh theo glob
-  Design → preview duyệt G1 ──────────────┐
-  Logic L1 → pushed hash → Logic L2      │
-                └──── fetch/merge + G1 → UI U1 → fetch/merge L2 → UI U2
-  Review chỉ đọc → sửa → Stage 6 + PR gate + AC + hết blocker → owner G3
+PRD + GUIDANCE (bất biến) → SCENARIOS duyệt (PO / owner)
+  ├─ design-prototyper → preview → G1
+  └─ spec-lock --unlock → test-translator → manifest khoá → spec-lock --lock
+→ AGENT-RUN → slice-implementer (Fix) → bàn giao full SHA
+→ FREEZE (dừng writer) → điều phối chạy verifier → code-reviewer toàn PR
+   ├─ lỗi code → ledger theo nhóm nguyên nhân → Fix cả nhóm → freeze lại
+   ├─ chuẩn sai → Spec Issue → PO/owner quyết → test-translator dịch lại
+   └─ (Đủ) 2 lượt sạch cùng commit → PR gate → nghiệm thu → gói review owner
 ```
 
-- Design và logic chạy **song song** ngay khi PRD duyệt.
-- UI chạy sau G1 và task logic cần dùng đã có dòng `<TASK> pushed <hash>`; không đợi toàn bộ logic (A6.1/D7).
-- Mỗi subagent làm xong → người điều phối **tự kiểm** trước khi báo: git log/diff thật, dòng `verify:` thật, ảnh có thật. Không chuyển lời subagent thành lời mình khi chưa kiểm.
+- Không hai agent ghi cùng checkout. Agent không chạy full gate riêng; chỉ điều phối chạy verifier trên candidate đã freeze.
+- **Nhận patch Fix:** đối chiếu diff với allowlist. Patch chạm test khoá/manifest/budget/verify config bị giữ lại để Test/owner quyết; không nhận nguyên patch rồi hợp thức hoá hash.
+- Review chạy trên snapshot đã freeze; bất kỳ thay đổi đầu vào nào huỷ bằng chứng phụ thuộc và reset bộ đếm hội tụ.
+- Mỗi subagent làm xong → điều phối **tự kiểm** (git log/diff, dòng `verify:` thật, ảnh thật) trước khi báo. Không chuyển lời subagent thành lời mình.
+
+### 3.3 Quan sát → chẩn đoán → sửa (hệ thống có sẵn, hoặc sau review FAIL)
+
+1. **Quan sát:** chốt HEAD/base, working tree, Spec SHA, kit/config. Một lượt kiểm theo vùng toàn diff + review toàn PR. **Không vá trong lúc thu bằng chứng.** ENV thì khắc phục rồi chạy lại, không gọi lỗi môi trường là lỗi sản phẩm.
+2. **Chẩn đoán:** sổ lỗi (ledger) gộp compiler/lint/test/review/spec; phân ENV, FLAKY, PRE-EXISTING (có bằng chứng ở base), SPEC, TEST, CODE; nhóm theo nguyên nhân gốc, liệt kê mọi hàm/job/caller liên quan. Người chẩn đoán tách khỏi người sửa khi có thể; cùng người thì nói rõ giới hạn.
+3. **Sửa:** mỗi nhóm một commit — nguyên nhân → mọi đường liên quan → test đỏ/xanh/mutation → bằng chứng. Không chạy tổng giữa từng nhóm. SPEC mở SI; mục độc lập tiếp tục.
+4. **Xác nhận:** kiểm tổng theo vùng một lần sau các nhóm; PR gate trước ready.
+
+Lý do: sửa từng finding rồi dừng sau một lần FAIL khiến agent dừng vì môi trường/lỗi vặt, đổi agent liên tục và mất bối cảnh bất biến; gom đủ rồi sửa theo nhóm thì một vòng đóng được cả loại lỗi.
+
+Mẫu hợp đồng: `references/agent-run-template.md`.
 
 ## 4. Viết brief
 
@@ -63,22 +95,14 @@ Brief = prompt hợp đồng thu gọn (skill `prompt-contract`), theo `referenc
 
 Sau mỗi mốc (không phải mỗi lần subagent trả về): 3–5 dòng — mốc nào xong, cần anh duyệt gì (preview link, Q), rủi ro. Định dạng bảng chi tiết dùng skill `review-report`.
 
-## 8. Logic ‖ UI bắt tay theo task (A6.1–A6.7/D5/D7; B3/B4/B8)
+## 8. Tích hợp, tiếp quản, hạn mức
 
-```text
-PRD → commit hợp đồng type/interface an toàn → tách nhánh theo glob
-Logic: task L1 → pushed hash ─────────────→ task L2 → pushed hash
-UI:      G1 + fetch/merge L1 → task U1 ──→ fetch/merge L2 → task U2
-Tích hợp → merge-tree mọi nhánh song song → verify + AC → Stage 6 → owner G3
-```
-
-- Commit hợp đồng kiểu dữ liệu trước chia nhánh; không dùng stub trả dữ liệu giả trong production. Logic và UI ở hai worktree, sở hữu theo glob.
-- Logic cập nhật HANDOFF đúng dòng `<TASK> pushed <hash>`. UI fetch+merge nhánh logic trước **mỗi** task; ghi hash đã nhận. Có xung đột thì giải theo hợp đồng.
-- Thiếu dữ liệu ghi “UI cần: …”; điều phối kiểm bảng C0: màn/caller → cần → API có → thiếu thật → cách bổ sung. Đọc code trước kết luận thiếu; không tạo API trùng.
-- Tích hợp: logic chịu trách nhiệm db/mock-data, UI chịu trách nhiệm apps/ui theo glob cụ thể trong brief; kiểm từng hunk, không chọn mù ours/theirs.
-- Tiếp quản: chỉ một writer/worktree; verifier chỉ đọc. Chia subagent theo việc có chồng file hay không, không theo số finding. Agent thi hành không tự mở subagent.
-- Điều phối dùng model mạnh, tác vụ hẹp dùng model rẻ đã có; một tác vụ nặng tại một thời điểm. Nhiều agent độc lập dùng TEAM-BOARD ở `references/coordination-templates.md`.
-- Hết quota bàn giao vai điều phối bằng B1, commit/push phần đã được kiểm, giữ base/ngân sách, liệt kê tài nguyên và bước tiếp.
+- Một `slice-implementer` một lát: không còn bắt tay logic ‖ UI theo hash (v0.4). Lát lớn thì chia **theo lát dọc** (mỗi lát một nhóm kịch bản, glob không chồng), không chia theo tầng.
+- Commit hợp đồng kiểu dữ liệu trước khi chia lát; không dùng stub trả dữ liệu giả trong production.
+- Tiếp quản: một writer/worktree; bàn giao full SHA, diff/untracked, file đã đổi, phần chưa làm; tiếp quản dùng `--base <mốc tiếp nhận>`.
+- Điều phối dùng model mạnh; `test-translator` và `slice-implementer` giữ model đủ mạnh; việc hẹp (prototype, nghiệm thu theo checklist) dùng model rẻ. Một tác vụ nặng tại một thời điểm.
+- Hết quota: bàn giao vai điều phối bằng B1 (`references/coordination-templates.md`), giữ base/ledger, liệt kê bước tiếp.
+- **Giới hạn thật:** allowlist và đối chiếu diff là kiểm soát tiếp nhận patch, không phải quyền hệ điều hành; sub-agent chung filesystem vẫn ghi được file ngoài nhiệm vụ. Ghi `policy-only` trong mỗi run. Nếu nhiệm vụ đòi cách ly cưỡng chế → BLOCKED ở gate đó tới khi có runner quyền riêng được owner duyệt.
 
 ## 9. Điều phối preview và vòng duyệt token (D1/D2 chốt 29/10)
 

@@ -34,7 +34,7 @@ Controls của dev bar chỉ phục vụ review, ghi rõ "không đưa vào app"
 ## Dữ liệu
 
 - Hư cấu hoàn toàn; không tên/thông tin thật của khách hay bệnh nhân.
-- Đủ đa dạng để mọi trạng thái USER_FLOW §2 xuất hiện tự nhiên (MiVida: tối thiểu 12 bản ghi có đủ gói, add-on, trạng thái).
+- Đủ đa dạng để mọi trạng thái USER_FLOW §2 xuất hiện tự nhiên (ví dụ: tối thiểu 12 bản ghi có đủ gói, add-on, trạng thái).
 - Media nặng (video, 3D) thay bằng ảnh tĩnh / khung giữ chỗ có nhãn.
 
 ## Hành vi

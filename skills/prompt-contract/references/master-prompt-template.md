@@ -1,6 +1,6 @@
 # Mẫu master prompt (một agent làm trọn feature)
 
-Mẫu gốc: `prompts/2026-10-20-admin-workspace-v2.md` (MiVida). Dán nguyên khối trong code fence vào agent.
+Dán nguyên khối trong code fence vào agent.
 
 ````markdown
 # Master prompt: <Feature vX> — <tóm tắt> (<MÃ>-00 → <MÃ>-nn)

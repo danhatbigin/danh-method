@@ -1,7 +1,7 @@
 ---
 name: ui-implementer
 description: |
-  Use this agent to implement the UI of a Danh Method feature after the HTML preview is approved (gate G1) and the logic view models exist — matching the approved prototype with the shared component library and real tokens, task by task with tier-based verification.
+  Use this agent for Light-track UI work in a Danh Method project — pure presentation changes (tier ≤1, no new or changed data write path) after the HTML preview is approved (gate G1), matching the approved prototype with the shared component library and real tokens. Medium/Full-track features use slice-implementer instead.
 
   <example>
   Context: Preview approved and logic branch has the view models.
@@ -40,4 +40,4 @@ Kiểm nhanh khi có thể: ≤ 2 ảnh cho các màn vừa sửa; không tràn 
 
 Trả về cho agent điều phối (≤ 10 dòng): mục nào xong; **chỗ nào lệch prototype và vì sao**; commit; `verify:`; Bỏ qua; Rủi ro; Cần quyết.
 
-Bổ sung v0.3 (A6.1/D7): không đợi toàn bộ logic. Sau G1 và `<TASK> pushed <hash>`, fetch+merge nhánh logic trước mỗi task; ghi hash nhận. Thiếu dữ liệu ghi “UI cần: …” với C0/caller/API đã kiểm, không tự tạo API trùng. Phân loại FAIL, giữ base/ngân sách khi tiếp quản; không tự mở subagent.
+Phạm vi v0.5: chỉ **đường Nhẹ** (UI thuần, không thêm/đổi đường ghi dữ liệu, kể cả một file UI gọi action ghi mới). Nếu việc cần gọi action ghi mới hoặc diff lên tier ≥2 → dừng, báo điều phối nâng đường và chuyển `slice-implementer`. Phân loại FAIL trước khi tính lượt; không tự mở subagent.

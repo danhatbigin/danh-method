@@ -10,3 +10,5 @@
 ui-ux-pro-max cho Codex/Antigravity: `npm install -g ui-ux-pro-max-cli` rồi `uipro init --ai codex` (hoặc `--ai antigravity`) — chỉ sau khi người dùng đồng ý.
 
 Verify-kit cài cho mọi agent: xem `skills/execute-tasks/assets/verify-kit/README.md`.
+
+Hook `guard-spec-tests` (chặn sửa test khoá) và `pipeline-nudge` (nhắc bước tiếp) chỉ chạy tự động ở Claude Code/Cowork. Agent khác: chạy tay `node <plugin>/hooks/scripts/pipeline-nudge.mjs --json` đầu phiên; lớp chặn thật là `spec-guard` khi verify + CODEOWNERS.

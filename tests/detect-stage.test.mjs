@@ -94,37 +94,84 @@ test('detectStage: Stage 1-3 when feature exists but spec/PRD is incomplete or u
   assert.equal(res.readyForDispatch, false);
 });
 
-test('detectStage: Stage 4A dispatches design-prototyper and logic-implementer in parallel with flash model', (t) => {
-  const root = createTempDir('stage4A-');
-  t.after(() => removeDir(root));
-
+function baseProject(prefix) {
+  const root = createTempDir(prefix);
   fs.mkdirSync(path.join(root, 'process'), { recursive: true });
   fs.writeFileSync(path.join(root, 'process', 'project.md'), '# Project Config');
   fs.writeFileSync(path.join(root, 'process', 'operator-danh.md'), '# Operator Danh');
   fs.mkdirSync(path.join(root, 'design-system'), { recursive: true });
   fs.writeFileSync(path.join(root, 'design-system', 'TOKENS-NOTES.md'), '# Gate G0: approved');
-
-  const featDir = path.join(root, 'features', 'workouts');
+  const featDir = path.join(root, 'features', 'orders');
   fs.mkdirSync(featDir, { recursive: true });
-  fs.writeFileSync(path.join(featDir, 'PRD.md'), '# PRD Workouts\nstatus: approved\nNgười duyệt: Danh');
-  fs.writeFileSync(path.join(featDir, 'USER_FLOW.md'), '# User Flow');
-  fs.writeFileSync(path.join(featDir, 'GUIDANCE.md'), '# Guidance');
-  fs.writeFileSync(path.join(featDir, 'TASKS.md'), '# Tasks\n- [ ] Task L1: Schema\n- [ ] Task U1: Screen');
+  fs.writeFileSync(path.join(featDir, 'PRD.md'), '# PRD\nstatus: approved');
+  fs.writeFileSync(path.join(featDir, 'USER_FLOW.md'), '# Flow');
+  return { root, featDir };
+}
+const SCEN = '| ID | Loại | Duyệt | v | Tiêu đề |\n|---|---|---|---|---|\n| ORD-AC01-01 | Nghiệp vụ | PO ✅ 01/11 | 1 | A |\n| ORD-INV-01 | Kỹ thuật | PO ✅ · chờ owner | 1 | B |\n';
 
-  const res = detectStage({ code: root, spec: root, feature: 'workouts' });
+test('detectStage: Stage 4A runs prototype and test-translator in parallel when scenarios approved', (t) => {
+  const { root, featDir } = baseProject('stage4A-');
+  t.after(() => removeDir(root));
+  fs.writeFileSync(path.join(featDir, 'TASKS.md'), '# Tasks\n- [ ] Task S1');
+  fs.writeFileSync(path.join(featDir, 'SCENARIOS.md'), SCEN);
+  const res = detectStage({ code: root, spec: root, feature: 'orders' });
   assert.equal(res.stage, '4A');
-  assert.equal(res.nextSkill, 'subagent-orchestration');
-  assert.equal(res.readyForDispatch, true);
-  assert.equal(res.proposeSubagents.length, 2);
+  assert.equal(res.track, 'Vừa');
+  assert.deepEqual(res.proposeSubagents.map((s) => s.subagent), ['design-prototyper', 'test-translator']);
+  assert.match(res.proposeSubagents[1].role, /1 kịch bản/);
+});
 
-  const [prototyper, logic] = res.proposeSubagents;
-  assert.equal(prototyper.subagent, 'design-prototyper');
-  assert.equal(prototyper.recommendedModel, 'flash');
-  assert.ok(prototyper.modelRationale.length > 0);
+test('detectStage: Stage 4A without scenarios proposes prototype only and asks for SCENARIOS', (t) => {
+  const { root, featDir } = baseProject('stage4A-noscen-');
+  t.after(() => removeDir(root));
+  fs.writeFileSync(path.join(featDir, 'TASKS.md'), '# Tasks\n- [ ] Task S1');
+  const res = detectStage({ code: root, spec: root, feature: 'orders' });
+  assert.equal(res.stage, '4A');
+  assert.deepEqual(res.proposeSubagents.map((s) => s.subagent), ['design-prototyper']);
+  assert.match(res.nextAction, /SCENARIOS/);
+});
 
-  assert.equal(logic.subagent, 'logic-implementer');
-  assert.equal(logic.recommendedModel, 'flash');
-  assert.ok(logic.modelRationale.length > 0);
+test('detectStage: Stage 3S blocks implementation when no approved scenarios (Medium track)', (t) => {
+  const { root, featDir } = baseProject('stage3S-');
+  t.after(() => removeDir(root));
+  fs.mkdirSync(path.join(featDir, 'prototype'));
+  fs.writeFileSync(path.join(featDir, 'prototype', 'index.html'), '<html></html>');
+  fs.writeFileSync(path.join(featDir, 'REVIEW.md'), 'Gate G1: approved');
+  fs.writeFileSync(path.join(featDir, 'TASKS.md'), '# Tasks\n- [ ] Task S1');
+  const res = detectStage({ code: root, spec: root, feature: 'orders' });
+  assert.equal(res.stage, '3S');
+  assert.equal(res.nextSkill, 'feature-spec');
+});
+
+test('detectStage: Stage 3T blocks slice-implementer until approved scenarios are locked', (t) => {
+  const { root, featDir } = baseProject('stage3T-');
+  t.after(() => removeDir(root));
+  fs.mkdirSync(path.join(featDir, 'prototype'));
+  fs.writeFileSync(path.join(featDir, 'prototype', 'index.html'), '<html></html>');
+  fs.writeFileSync(path.join(featDir, 'REVIEW.md'), 'Gate G1: approved');
+  fs.writeFileSync(path.join(featDir, 'TASKS.md'), '# Tasks\n- [ ] Task S1');
+  fs.writeFileSync(path.join(featDir, 'SCENARIOS.md'), SCEN);
+  let res = detectStage({ code: root, spec: root, feature: 'orders' });
+  assert.equal(res.stage, '3T');
+  assert.equal(res.proposeSubagents[0].subagent, 'test-translator');
+  fs.mkdirSync(path.join(root, 'tests'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'tests', 'spec-manifest.json'), JSON.stringify([{ id: 'ORD-AC01-01' }]));
+  res = detectStage({ code: root, spec: root, feature: 'orders' });
+  assert.equal(res.stage, '4C');
+  assert.equal(res.proposeSubagents[0].subagent, 'slice-implementer');
+});
+
+test('detectStage: Light track skips scenarios and uses ui-implementer', (t) => {
+  const { root, featDir } = baseProject('stageLight-');
+  t.after(() => removeDir(root));
+  fs.mkdirSync(path.join(featDir, 'prototype'));
+  fs.writeFileSync(path.join(featDir, 'prototype', 'index.html'), '<html></html>');
+  fs.writeFileSync(path.join(featDir, 'REVIEW.md'), 'Gate G1: approved');
+  fs.writeFileSync(path.join(featDir, 'TASKS.md'), '# Tasks\nĐường: Nhẹ\n- [ ] Task U1');
+  const res = detectStage({ code: root, spec: root, feature: 'orders' });
+  assert.equal(res.stage, '4C');
+  assert.equal(res.track, 'Nhẹ');
+  assert.equal(res.proposeSubagents[0].subagent, 'ui-implementer');
 });
 
 test('detectStage: Stage 4B coordinator reviews preview and gates G1', (t) => {
@@ -150,7 +197,7 @@ test('detectStage: Stage 4B coordinator reviews preview and gates G1', (t) => {
   assert.equal(res.readyForDispatch, false);
 });
 
-test('detectStage: Stage 4C dispatches ui-implementer after G1 approved and logic pushed', (t) => {
+test('detectStage: Stage 4C dispatches slice-implementer after G1 approved (legacy feature with logic pushed)', (t) => {
   const root = createTempDir('stage4C-');
   t.after(() => removeDir(root));
 
@@ -173,8 +220,8 @@ test('detectStage: Stage 4C dispatches ui-implementer after G1 approved and logi
   assert.equal(res.nextSkill, 'subagent-orchestration');
   assert.equal(res.readyForDispatch, true);
   assert.equal(res.proposeSubagents.length, 1);
-  assert.equal(res.proposeSubagents[0].subagent, 'ui-implementer');
-  assert.equal(res.proposeSubagents[0].recommendedModel, 'flash');
+  assert.equal(res.proposeSubagents[0].subagent, 'slice-implementer');
+  assert.equal(res.proposeSubagents[0].recommendedModel, 'inherit');
 });
 
 test('detectStage: Stage 5 dispatches code-reviewer (read-only) with flash model', (t) => {

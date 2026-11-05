@@ -78,6 +78,34 @@ function readSafe(p) {
   }
 }
 
+const TRACKS = { 'nhẹ': 'Nhẹ', nhe: 'Nhẹ', light: 'Nhẹ', 'vừa': 'Vừa', vua: 'Vừa', medium: 'Vừa', 'đủ': 'Đủ', du: 'Đủ', full: 'Đủ' };
+export function readTrack(codeRoot, tasksText = '') {
+  try {
+    const t = JSON.parse(fs.readFileSync(path.join(codeRoot, '.danh', 'track.json'), 'utf8')).track;
+    if (t && TRACKS[String(t).toLowerCase()]) return TRACKS[String(t).toLowerCase()];
+  } catch {}
+  const m = tasksText.match(/Đường\s*:\s*\**\s*(Nhẹ|Vừa|Đủ|light|medium|full)/i);
+  return m ? TRACKS[m[1].toLowerCase()] : 'Vừa';
+}
+export function approvedScenarioIds(text) {
+  const ID = /^[A-Z][A-Z0-9]*-[A-Z0-9]+-\d+$/;
+  const out = { total: 0, approved: [] };
+  for (const line of text.split(/\r?\n/)) {
+    const cells = line.split('|').map((x) => x.trim());
+    if (!ID.test(cells[1] || '')) continue;
+    out.total++;
+    const a = (cells[3] || '').toLowerCase();
+    if (a && !/chờ|pending|draft/.test(a)) out.approved.push(cells[1]);
+  }
+  return out;
+}
+export function lockedIds(codeRoot) {
+  try {
+    const m = JSON.parse(fs.readFileSync(path.join(codeRoot, 'tests', 'spec-manifest.json'), 'utf8').replace(/^﻿/, ''));
+    return new Set((Array.isArray(m) ? m : []).map((e) => e && e.id));
+  } catch { return new Set(); }
+}
+
 export function detectStage(options = {}) {
   const codeRoot = path.resolve(options.code || process.cwd());
   const specRoot = path.resolve(options.spec || codeRoot);
@@ -240,34 +268,49 @@ export function detectStage(options = {}) {
 
   // Check Task status in TASKS.md or HANDOFF
   const tasksText = readSafe(tasksPath);
-  const logicTasksDone = /\[x\]\s*(task\s*l|logic)/i.test(tasksText) || /pushed\s+[a-f0-9]{7,40}/i.test(tasksText);
+  const logicTasksDone = /\[x\]\s*(task\s*l|logic|slice)/i.test(tasksText) || /pushed\s+[a-f0-9]{7,40}/i.test(tasksText);
   const uiTasksDone = /\[x\]\s*(task\s*u|ui)/i.test(tasksText);
 
-  // 5. Stage 4A: Parallel Prototype & Logic Dispatch (Right after PRD approval)
+  // v0.5: đường (Nhẹ / Vừa / Đủ). Khai ở <code>/.danh/track.json hoặc dòng "Đường: ..." trong TASKS.md.
+  // Chưa khai → coi là Vừa (an toàn: cần kịch bản + test khoá); chỉ nâng, không hạ.
+  const track = readTrack(codeRoot, tasksText);
+  const light = track === 'Nhẹ';
+  const scenariosPath = path.join(fDir, 'SCENARIOS.md');
+  const scenarios = exists(scenariosPath) ? approvedScenarioIds(readSafe(scenariosPath)) : null;
+  const locked = lockedIds(codeRoot);
+  const missingTests = scenarios ? scenarios.approved.filter((id) => !locked.has(id)) : [];
+
+  const translator = {
+    subagent: 'test-translator',
+    role: `Dịch ${missingTests.length} kịch bản đã duyệt thành test khoá đỏ-trước, cập nhật manifest`,
+    glob: 'tests/spec/**, tests/spec-manifest.json (trong cửa sổ spec-lock)',
+    recommendedModel: 'inherit',
+    modelRationale: 'Người đặt chuẩn quyết định chất lượng mọi vòng sau; không hạ model ở bước này.',
+  };
+
+  // 5b. Stage 4A: Prototype ‖ Test khoá (sau khi PRD + kịch bản duyệt)
   if (!hasRenderedPrototype && !logicTasksDone) {
+    const subs = [{
+      subagent: 'design-prototyper',
+      role: 'Dựng prototype component thật kèm controls chỉnh token & provenance',
+      glob: `features/${featureName}/prototype/**, features/${featureName}/DESIGN-NOTES.md`,
+      recommendedModel: 'flash',
+      modelRationale: 'Tiết kiệm chi phí & quota, tối ưu cho tác vụ chuyển đổi spec thành code preview theo mẫu.',
+    }];
+    if (!light && missingTests.length) subs.push(translator);
     return {
       stage: '4A',
-      stageName: 'Thi hành song song Prototype (Design) & Logic Backend',
+      stageName: light ? 'Prototype (đường Nhẹ)' : 'Thi hành song song Prototype & Test khoá',
       feature: featureName,
-      status: `PRD feature "${featureName}" đã duyệt. Chưa có HTML prototype và chưa có commit logic.`,
+      track,
+      status: `PRD feature "${featureName}" đã duyệt. Chưa có HTML prototype.${!light && missingTests.length ? ` ${missingTests.length} kịch bản chưa có test khoá.` : ''}`,
       nextSkill: 'subagent-orchestration',
-      nextAction: 'Kích hoạt 2 subagent chạy song song: design-prototyper dựng preview component thật, logic-implementer dựng schema/logic.',
-      proposeSubagents: [
-        {
-          subagent: 'design-prototyper',
-          role: 'Dựng prototype component thật kèm controls chỉnh token & provenance',
-          glob: `features/${featureName}/prototype/**, features/${featureName}/DESIGN-NOTES.md`,
-          recommendedModel: 'flash',
-          modelRationale: 'Tiết kiệm chi phí & quota, tối ưu cho tác vụ chuyển đổi spec thành code preview theo mẫu.',
-        },
-        {
-          subagent: 'logic-implementer',
-          role: 'Triển khai schema, service, API endpoints và unit test',
-          glob: 'packages/server/**, src/services/**, tests/unit/**',
-          recommendedModel: 'flash',
-          modelRationale: 'Tiết kiệm chi phí & quota, đủ thông minh cho TDD và implement schema/logic theo hợp đồng data.',
-        },
-      ],
+      nextAction: !light && missingTests.length
+        ? 'Chạy song song: design-prototyper dựng preview, test-translator dịch kịch bản thành test khoá (mở spec-lock trước).'
+        : (!light && !(scenarios && scenarios.approved.length)
+          ? 'Spawn design-prototyper dựng preview; song song viết SCENARIOS + bất biến để PO/owner duyệt (chưa giao implementer).'
+          : 'Spawn design-prototyper dựng preview component thật.'),
+      proposeSubagents: subs,
       readyForDispatch: true,
     };
   }
@@ -278,32 +321,59 @@ export function detectStage(options = {}) {
       stage: '4B',
       stageName: 'Điều phối viên nghiệm thu Preview & Chốt Gate G1',
       feature: featureName,
+      track,
       status: `Đã có file prototype tại features/${featureName}/prototype/, chưa có duyệt G1 trong REVIEW.md.`,
       nextSkill: 'design-prototype',
       nextAction: 'Điều phối viên tự chạy renderer, chụp ảnh 1440/768/390 light+dark và lập REVIEW.md để người phụ trách duyệt G1.',
+      proposeSubagents: !light && missingTests.length ? [translator] : [],
+      readyForDispatch: !light && missingTests.length > 0,
+    };
+  }
+
+  // 5a. Stage 3S: kịch bản + bất biến (đường Vừa/Đủ)
+  if (!light && !logicTasksDone && !uiTasksDone && (!scenarios || scenarios.total === 0 || scenarios.approved.length === 0)) {
+    return {
+      stage: '3S',
+      stageName: 'Kịch bản + bất biến chờ duyệt',
+      feature: featureName,
+      track,
+      status: scenarios && scenarios.total ? `Có ${scenarios.total} kịch bản nhưng chưa dòng nào được đúng người duyệt.` : `Feature "${featureName}" chưa có SCENARIOS.md (đường ${track}).`,
+      nextSkill: 'feature-spec',
+      nextAction: 'Viết SCENARIOS (PO duyệt nghiệp vụ, owner duyệt bất biến) và GUIDANCE §bất biến + bản đồ ghi; trình PO bằng kịch bản trực quan.',
       proposeSubagents: [],
       readyForDispatch: false,
     };
   }
 
-  // 7. Stage 4C: UI Implementation (G1 approved + Logic has pushed hash)
+  // 7a. Test khoá phải xong trước Fix (đường Vừa/Đủ)
+  if (!light && missingTests.length && !uiTasksDone) {
+    return {
+      stage: '3T',
+      stageName: 'Test khoá chưa đủ · chặn implementer',
+      feature: featureName,
+      track,
+      status: `${missingTests.length} kịch bản đã duyệt chưa có test khoá: ${missingTests.slice(0, 5).join(', ')}.`,
+      nextSkill: 'scenario-tests',
+      nextAction: 'Mở spec-lock, giao test-translator, khoá manifest bằng spec-guard rồi mới giao slice-implementer.',
+      proposeSubagents: [translator],
+      readyForDispatch: true,
+    };
+  }
+
+  // 7b. Stage 4C: Implement (G1 duyệt + test khoá xong)
   if (g1Approved && !uiTasksDone) {
+    const impl = light
+      ? { subagent: 'ui-implementer', role: 'Giao diện thuần theo preview G1 (đường Nhẹ, không thêm đường ghi dữ liệu)', glob: 'packages/ui/**, src/components/**, src/pages/**', recommendedModel: 'flash', modelRationale: 'Việc UI thuần, phạm vi hẹp.' }
+      : { subagent: 'slice-implementer', role: 'Làm trọn lát dọc DB → domain → action → UI theo GUIDANCE bất biến; không sửa test khoá', glob: 'Allowlist trong AGENT-RUN (cấm tests/spec/**, manifest, .verify/)', recommendedModel: 'inherit', modelRationale: 'Giữ bất biến xuyên tầng cần ngữ cảnh đủ; một agent một lát.' };
     return {
       stage: '4C',
-      stageName: 'Triển khai Giao diện UI (ui-implementer)',
+      stageName: light ? 'Triển khai Giao diện UI (ui-implementer)' : 'Triển khai lát dọc (slice-implementer)',
       feature: featureName,
-      status: `Preview Gate G1 đã duyệt và Logic đã có commit. Sẵn sàng ráp UI hoàn chỉnh.`,
+      track,
+      status: light ? 'Preview Gate G1 đã duyệt. Sẵn sàng ráp UI.' : 'Preview G1 đã duyệt, test khoá đủ. Sẵn sàng giao Fix theo AGENT-RUN.',
       nextSkill: 'subagent-orchestration',
-      nextAction: 'Spawn ui-implementer để ráp màn hình theo đúng preview đã duyệt và kết nối logic API.',
-      proposeSubagents: [
-        {
-          subagent: 'ui-implementer',
-          role: 'Triển khai giao diện UI theo đúng preview G1 đã duyệt và kết nối dữ liệu logic',
-          glob: 'packages/ui/**, src/components/**, src/pages/**',
-          recommendedModel: 'flash',
-          modelRationale: 'Tiết kiệm chi phí & quota, tập trung bám sát markup/style đã chốt ở preview.',
-        },
-      ],
+      nextAction: light ? 'Spawn ui-implementer theo preview đã duyệt; verifier một lần cuối.' : 'Tạo AGENT-RUN, spawn slice-implementer; điều phối freeze rồi chạy verifier.',
+      proposeSubagents: [impl],
       readyForDispatch: true,
     };
   }
@@ -316,15 +386,16 @@ export function detectStage(options = {}) {
   if (!reviewReportExists) {
     return {
       stage: '5',
+      track,
       stageName: 'Đánh giá mã nguồn (code-reviewer chỉ đọc)',
       feature: featureName,
       status: `Mã nguồn đã triển khai, chưa có báo cáo code review độc lập theo PRD.`,
       nextSkill: 'review-report',
-      nextAction: 'Spawn code-reviewer (chỉ đọc diff) để phát hiện lỗi logic, bảo mật, đối chiếu PRD và lập bảng Issue.',
+      nextAction: 'Spawn code-reviewer (chỉ đọc) review toàn PR theo bất biến; đường Đủ cần 2 lượt sạch trên cùng commit (review hội tụ).',
       proposeSubagents: [
         {
           subagent: 'code-reviewer',
-          role: 'Review diff chỉ đọc (git diff base..head), truy nguyên cơ chế, đối chiếu PRD và lập bảng Issue',
+          role: 'Review toàn PR base→candidate theo bất biến, nhãn mới/quay lại/bị bác, mức bằng chứng',
           glob: '(Read-only diff — không ghi code app)',
           recommendedModel: 'flash',
           modelRationale: 'Tiết kiệm chi phí & quota, hoàn hảo cho tác vụ đọc code tìm diff lỗi theo checklist định sẵn.',

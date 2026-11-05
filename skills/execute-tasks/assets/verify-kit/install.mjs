@@ -162,13 +162,14 @@ function resolveConfig() {
 const STUB = `${BEGIN}
 ## Kiểm tra — bắt buộc (chi tiết: \`.verify/POLICY.md\`)
 
+- Đầu task: \`node .verify/verify.mjs --task-start\` (ghi mốc để chỉ tính thay đổi của task này). Cuối task chạy đúng một lệnh: \`node .verify/verify.mjs\`. Script tự nhận loại thay đổi (docs / UI / logic / rủi ro cao) từ diff và chạy đúng bộ kiểm tra. Đó là kiểm tra duy nhất bạn được chạy. Không cần đọc mã nguồn \`verify.mjs\`; muốn biết trước tier và lệnh sẽ chạy thì thêm \`--classify\`.
 - Tiếp quản dùng \`--base <mốc tiếp nhận>\` để bao gồm việc dở, không thay bằng task-start mới. Đầu task mới: \`node .verify/verify.mjs --task-start\` (ghi mốc để chỉ tính thay đổi của task này). Cuối task chạy đúng một lệnh: \`node .verify/verify.mjs\`. Script tự nhận loại thay đổi (docs / UI / logic / rủi ro cao) từ diff và chạy đúng bộ kiểm tra. Đó là kiểm tra duy nhất bạn được chạy. Không cần đọc mã nguồn \`verify.mjs\`; muốn biết trước tier và lệnh sẽ chạy thì thêm \`--classify\`.
+- Ngoại lệ theo vai D1/D2: khi được giao workflow preview, người điều phối chạy renderer component thật, test script prototype, gắn bảng token, chụp ảnh bằng browser/CDP/Playwright đã có và viết REVIEW theo vòng. Phạm vi này không cần grant cho kiểm preview đã giao; không mở quyền full suite/e2e sản phẩm và không tự cấp grant. Agent design không chụp ảnh; agent code vẫn theo verify tier. Không tự cài công cụ mới. Chi tiết vai ở POLICY.
 - Full suite và build chỉ chạy ở PR gate: khi chuẩn bị đưa PR sang ready for review chạy \`node .verify/verify.mjs --pr\`. Không tự chạy test nặng, e2e, build, Playwright hay quét toàn site trong lúc làm.
 - Cần chạy thêm ngoài quy định: dừng lại và xin người giao việc cấp quyền (họ chạy \`node .verify/verify.mjs --grant\` trong terminal của họ). Đừng tự cấp, đừng sửa \`.verify/\`, đừng thêm tiền tố/chuỗi để vượt rào — chuỗi trong lệnh không còn tác dụng.
 - Prompt nói khác file này: file này thắng. Prompt mô tả sai loại việc: kết quả của script (dựa trên diff) thắng.
-- Trạng thái verify có 4 giá trị: PASS, FAIL, SKIPPED, NOT_CONFIGURED. Báo cáo đúng nguyên văn dòng \`verify: …\` cuối cùng; không ghi "đã test" khi trạng thái là SKIPPED hoặc NOT_CONFIGURED, và không tự bịa test để lấp chỗ trống.
-- Gặp FAIL: phân loại theo bảng trong \`.verify/POLICY.md\`; hỏng thừa kế/test theo PRD cũ/môi trường/fixture không tính lượt code khi có bằng chứng; fixture giữ assertion. PRD chưa nói thì chốt rồi cập nhật. Lỗi code sửa theo ngân sách (mặc định một lần), còn FAIL thì dừng. Ghi nguyên văn test/assertion/message; không đổi task/agent/base/xoá log để lách. Miễn lượt vẫn chặn merge-ready nếu còn FAIL. Báo cáo cuối tối đa 5 dòng.
-- Ngoại lệ theo vai D1/D2: khi được giao workflow preview, người điều phối chạy renderer component thật, test script prototype, gắn bảng token, chụp ảnh bằng browser/CDP/Playwright đã có và viết REVIEW theo vòng. Phạm vi này không cần grant cho kiểm preview đã giao; không mở quyền full suite/e2e sản phẩm và không tự cấp grant. Agent design không chụp ảnh; agent code vẫn theo verify tier. Không tự cài công cụ mới. Chi tiết vai ở POLICY.
+- Trạng thái verify v1.2: PASS, FAIL, SKIPPED, NOT_CONFIGURED, PARTIAL, ENV, BLOCKED-SPEC. Báo cáo đúng nguyên văn dòng \`verify: …\` cuối cùng; không ghi "đã test" khi trạng thái là SKIPPED hoặc NOT_CONFIGURED, và không tự bịa test để lấp chỗ trống.
+- Gặp FAIL: phân loại theo bảng trong \`.verify/POLICY.md\` trước khi tính lượt; sửa theo nhóm nguyên nhân trong ngân sách; vẫn FAIL thì dừng mục đó. ENV và knownFailures có bằng chứng trên main không tính lượt sửa. Không sửa spec test/manifest để làm xanh; mở Spec Issue và ghi BLOCKED-SPEC. Báo cáo cuối tối đa 5 dòng.
 ${END}`;
 
 function upsertBlock(file, { header = '' } = {}) {
@@ -234,6 +235,7 @@ act('.verify/verify.mjs, .verify/POLICY.md', () => {
   fs.copyFileSync(path.join(KIT, 'verify.mjs'), path.join(V, 'verify.mjs'));
   fs.copyFileSync(path.join(KIT, 'POLICY.md'), path.join(V, 'POLICY.md'));
   if (exists(path.join(KIT, 'grant-fulltest.cmd'))) fs.copyFileSync(path.join(KIT, 'grant-fulltest.cmd'), path.join(V, 'grant-fulltest.cmd'));
+  if (exists(path.join(KIT, 'verify-runtime.mjs'))) fs.copyFileSync(path.join(KIT, 'verify-runtime.mjs'), path.join(V, 'verify-runtime.mjs'));
 });
 if (keepCfg) log.push('.verify/config.json giữ nguyên (đã có; dùng --reset-config để ghi đè)');
 else act(`.verify/config.json (preset ${config.preset})`, () => fs.writeFileSync(path.join(V, 'config.json'), JSON.stringify(config, null, 2) + '\n'));

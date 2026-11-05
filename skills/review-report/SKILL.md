@@ -1,6 +1,6 @@
 ---
 name: review-report
-description: Produces Danh Method reviews, root-cause investigations and reports — read-only code review by diff, mechanism-level root cause (not symptom fixes), and tables in the format issue → cause → result → solution with mandatory "Skipped" and "Risks" sections; turns review findings into a numbered fix spec (S1..Sn). Use when someone says "review", "báo cáo", "lập bảng phân tích", "nguyên nhân do đâu", "tại sao chậm", "liệt kê lỗi", "issue nguyên nhân kết quả giải pháp", or after a subagent/PR finishes.
+description: Produces Danh Method reviews, root-cause investigations and reports — read-only full-PR review by data invariant (not per fix diff), findings labelled new / returning / rejected with evidence levels, a cross-round ledger grouped by root cause, convergence review on the Full track (two clean passes on the same commit, brake after three rounds), a 7-point regression checklist, one owner review package with efficiency metrics, and tables in the format issue → cause → result → solution with mandatory "Skipped" and "Risks" sections. Use when someone says "review", "báo cáo", "lập bảng phân tích", "nguyên nhân do đâu", "tại sao chậm", "liệt kê lỗi", "issue nguyên nhân kết quả giải pháp", "review hội tụ", "ledger", "gói review", "review package", or after a subagent/PR finishes.
 ---
 
 # Review, truy nguyên nhân & báo cáo
@@ -15,12 +15,15 @@ Không dừng ở triệu chứng, không sửa mù. Đi theo chuỗi câu hỏi
 
 Dùng kỷ luật `superpowers:systematic-debugging` khi có. Giả thuyết chưa chứng minh ghi là giả thuyết.
 
-## 2. Review code (chỉ đọc)
+## 2. Review code (chỉ đọc, toàn PR, theo bất biến)
 
-- Đọc bằng `git diff` / `git show`; không checkout, không sửa, không commit.
-- Soi: AC và quyền trong PRD; bẫy trong GUIDANCE; review focus trong TASKS; bảo mật (dữ liệu nhạy cảm xuống client khi thiếu quyền, server có kiểm quyền); test có chứng minh hành vi; N+1; UI lệch preview/token; dữ liệu mẫu lọt vào code.
-- Mỗi lỗi có mã (`lỗi 1…n` hoặc theo vòng `R2-xx`), mức Critical / Major / Minor, file:dòng, cách tái hiện.
-- Kết luận một dòng: "Sẵn sàng để <X> merge" hoặc "Chưa sẵn sàng — cần sửa #…".
+- Đọc toàn diff base → candidate (`git diff <base>..<candidate>`, `git show`) cộng caller ngoài diff khi cần; không checkout, không sửa, không commit. **Không chỉ đọc commit sửa gần nhất**: lỗi ngoài diff sẽ lộ ra ở vòng sau như "lỗi mới".
+- Với từng bất biến trong GUIDANCE: lấy toàn bộ đường ghi (helper, action, job, đường tạo dữ liệu ban đầu), kiểm thứ tự khoá/đọc lại, token UI→action→domain, vai trò × trạng thái × dữ liệu nhạy cảm, quan hệ phụ thuộc, ngân sách dòng/bind/bytes. Không chia review theo file.
+- Áp `references/regression-checklist.md` (7 điểm) cho mọi finding đang sửa.
+- Mỗi finding: mã (theo vòng `R<n>-xx`), mức Critical/Major/Minor **độc lập** với nhãn **mới / quay lại / bị bác**, INV + bảng writer, mức bằng chứng **tái hiện DB / phân tích tĩnh / nghi ngờ chưa xác minh** kèm lệnh, commit, output nguyên văn. Không biến phân tích tĩnh thành đã tái hiện; bằng chứng yếu không đóng được major.
+- Phản biện từng finding và tìm chỗ bỏ sót trước khi nộp. Finding từng bị bác mà nêu lại phải dẫn quyết định cũ.
+- Đường Đủ: theo `references/review-convergence.md`. Đường Vừa: một lượt toàn diff, độc lập.
+- Kết luận một dòng: "Lượt sạch" hoặc "Chưa sạch — cần sửa #…". Merge là quyết định của owner.
 
 ## 3. Định dạng báo cáo (mặc định cho mọi phân tích)
 
@@ -38,16 +41,25 @@ Luôn kết bằng **Bỏ qua** (cố ý chưa làm/chưa kiểm, vì sao) và *
 
 Bản cho người phụ trách sản phẩm: ngắn, ngôn ngữ nghiệp vụ, tối đa 10 dòng + bảng. Bản cho owner: kiểu dev nói với dev, có commit/file.
 
-## 4. Từ review sang việc sửa
+## 4. Từ review sang việc sửa: ledger theo nhóm nguyên nhân
 
-1. Đối chiếu PRD: lỗi nào là sai nghiệp vụ, lỗi nào là sai code, lỗi nào review hiểu sai.
-2. Viết `features/<f>/FIXES-<ngày>.md`: S1…Sn theo thứ tự nghiêm trọng, mỗi mục có "xong khi" và "không làm"; nhóm Major / Minor; điểm dừng bắt buộc.
-3. Giao bằng prompt biến thể `fix` (skill `prompt-contract`): một agent, tuần tự, test chứng minh lỗi trước.
-4. Commit theo nhóm lỗi; lỗi nghiêm trọng nhất commit riêng.
+1. **Ledger xuyên vòng** (`features/<f>/LEDGER-<ngày>.md`): gộp compiler/lint/test/review/spec; mỗi dòng có loại ENV / FLAKY / PRE-EXISTING (bằng chứng base) / SPEC / TEST / CODE, mức trước/sau, nhãn mới/quay lại/bị bác, trạng thái. Không xoá dòng; finding bị bác ghi người, lý do, bằng chứng.
+2. **Nhóm theo nguyên nhân gốc**, không theo finding: mỗi nhóm G01…Gn liệt kê mọi hàm/job/caller cùng nguyên nhân. Đây là chỗ biến "danh sách trường hợp" thành "loại lỗi".
+3. Đối chiếu PRD: sai nghiệp vụ → Spec Issue (skill `scenario-tests`); sai code → nhóm sửa; review hiểu sai → bác có bằng chứng.
+4. Giao `slice-implementer` bằng prompt biến thể `fix-by-group` (skill `prompt-contract`): mỗi nhóm một commit, test đỏ/xanh/mutation, không chạy tổng giữa các nhóm.
+5. Sau các nhóm: điều phối freeze, chạy kiểm theo vùng một lần, rồi review toàn PR lại.
+
+Lý do: gửi agent danh sách finding F1..Fn khiến nó sửa đúng các hàm được nêu; loại lỗi vẫn mở và vòng sau tìm thấy trường hợp khác cùng loại.
+
+## 4.5 Gói review cho owner
+
+Owner nhận **một gói** theo `references/review-package-template.md`: SHA/ref các repo, người dùng thấy gì (≤3), bảng quyết định cần duyệt một lần, bằng chứng (verify nguyên văn, PR gate, CI thật hay chưa, hai lượt review nếu Đủ), thứ tự tích hợp, mục còn mở có người nhận theo vai trò + hạn. Không nhắn từng lỗi lẻ. Gửi gói không có nghĩa PR đủ điều kiện ready.
+
+Đo trên mỗi gói: số vòng owner review (mục tiêu ≤ 2), major mới/quay lại, số lần đổi agent, tổng phút kiểm, test bị bỏ, SI mở. Sau vài gói mới chỉnh ngân sách từ số đo thật; không cam kết "không thể có lỗi mới".
 
 ## 5. Báo cáo HTML khi cần chia sẻ
 
-Review dài cho owner có thể xuất HTML (ví dụ `PR22-REVIEW-<ngày>.html`) để đọc dễ; nội dung vẫn theo bảng trên. Nếu môi trường có Artifact/Docs thì dùng thay vì file rời.
+Review dài cho owner có thể xuất HTML (ví dụ `PR<n>-REVIEW-<ngày>.html`) để đọc dễ; nội dung vẫn theo bảng trên. Nếu môi trường có Artifact/Docs thì dùng thay vì file rời.
 
 ## 6. FIXES và bằng chứng review (A2.3; B5)
 

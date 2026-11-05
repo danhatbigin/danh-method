@@ -1,6 +1,6 @@
 # Nguyên tắc & quyết định gốc (kèm lý do và lời gốc)
 
-Rút từ 379 tin nhắn của Danh trên Claude, Codex, Antigravity, AionUI (08–22/10/2026) và tài liệu `mivida-spec` tới 29/10/2026. Dùng file này khi cần **lý do** cho một luật, hoặc khi hai luật có vẻ mâu thuẫn.
+Rút từ 379 tin nhắn của Danh trên Claude, Codex, Antigravity, AionUI (08–22/10/2026) và tài liệu quy trình của dự án gốc tới 05/11/2026. Dùng file này khi cần **lý do** cho một luật, hoặc khi hai luật có vẻ mâu thuẫn.
 
 ## A. Thị giác & design system
 
@@ -73,3 +73,23 @@ Không dừng ở triệu chứng; không chấp nhận sửa mù.
 ## Cập nhật sau khảo sát 23–29/10
 
 D14 là trích lịch sử; luật hiện hành A5.1/D6 yêu cầu phân loại FAIL trước khi tính lượt sửa, không dừng chung vì test cũ đỏ. G3 là vòng review owner sau Stage 6 và gate PR/AC/blocker (A1.2). D17 chia theo glob có chồng file hay không (D5), không theo số finding.
+
+
+## G. Pipeline v0.5: vì sao (rút từ một PR phải qua 23 vòng review)
+
+Bối cảnh: một feature ghi dữ liệu nhiều bảng (đơn, giá, lịch, job nền) mất 23 vòng review/sửa và 28 prompt trong 4 ngày. Truy nguyên cho thấy lỗi không nằm ở agent viết ẩu mà ở **cảm biến** của quy trình: vòng trong (agent + verify) chỉ thấy lỗi kiểu, lint, test trùng tên file; vòng ngoài (review) thấy tranh chấp, quy mô, vai trò × trạng thái. Review trả về danh sách *trường hợp* thay vì *loại lỗi*, nên mỗi loại tốn một vòng cho mỗi trường hợp (một bất biến cần 4 vòng mới lan hết các hàm ghi).
+
+| # | Nguyên tắc | Lý do |
+|---|---|---|
+| P01 | Mức nặng quy trình đi theo diff thật (Nhẹ/Vừa/Đủ); chỉ nâng, không hạ. | Trả đúng giá cho rủi ro; không đoán theo cảm giác. |
+| P02 | Feature ghi dữ liệu phải viết bất biến + bản đồ bảng → mọi writer/caller/job trước khi code. | Không có bất biến viết ra thì không có gì để quét, không có chuẩn để test; sửa theo điểm là hệ quả tất yếu. |
+| P03 | Kịch bản được đúng người duyệt; PO duyệt nghiệp vụ, owner duyệt bất biến; PO duyệt không suy ra owner duyệt. | Hai loại đúng/sai khác nhau, cần hai thẩm quyền. |
+| P04 | Agent không bao giờ làm test khớp với code. Lệch → sửa code hoặc Spec Issue. Người dịch test khác người code. | Agent tự nới thước đo của mình (nâng trần, viết lại assertion, assertion luôn đúng) làm test xanh mà vô nghĩa. |
+| P05 | Một agent làm trọn một lát dọc. | Bất biến chạy xuyên tầng (token UI → action → domain → khoá → job); chia đôi thì lỗi rơi vào chỗ nối. |
+| P06 | Quan sát đủ trước khi vá; phân loại ENV/FLAKY/PRE-EXISTING/SPEC/TEST/CODE; sửa theo nhóm nguyên nhân. | Fail-fast + "sửa 1 lần rồi dừng" + lỗi môi trường làm agent dừng liên tục (8/10 lần dừng không do lỗi logic) → đổi agent → mất bối cảnh. |
+| P07 | Review toàn PR theo bất biến, không theo diff commit sửa; mỗi finding có nhãn mới/quay lại/bị bác và mức bằng chứng. | Review từng diff để lỗi ngoài diff lộ ra ở vòng sau như "lỗi mới". |
+| P08 | Đường Đủ: hai lượt review sạch liên tiếp trên cùng commit, cùng cấu hình; 3 vòng vẫn còn major mới → quay về hợp đồng. | Có điểm dừng đo được; vòng 4 vá tiếp thường là triệu chứng của hợp đồng thiếu. |
+| P09 | Trạng thái verify trung thực: SKIPPED ngoài docs là PARTIAL; ENV, BLOCKED-SPEC không xanh; CI chưa chạy ≠ CI xanh; PASS cũ không thay kết quả HEAD mới. | Công cụ in PASS khi bỏ qua test khiến "xong" vượt phạm vi đã kiểm. |
+| P10 | Phần chưa kiểm phải có người nhận theo vai trò và hạn; chưa ai nhận thì ghi "chưa được nhận". | "Cho owner chạy --pr" lặp qua nhiều handoff mà không ai chạy. |
+| P11 | Owner nhận một gói review đủ bằng chứng, không nhận từng lỗi lẻ; đo số vòng owner review (mục tiêu ≤ 2). | Mỗi lần nhắn lẻ là một vòng ngữ cảnh của owner. |
+| P12 | Khai thật mức cách ly: `policy-only` khi chưa có sandbox/quyền ghi riêng. Hook, manifest, allowlist là rào giảm tốc, không phải khoá tuyệt đối. | Không quảng cáo bảo đảm mà hệ thống không có. |

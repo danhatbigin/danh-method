@@ -9,7 +9,7 @@
 
 - Một hoặc nhiều file CSS. Đọc biến `--*` trong `:root`, `html`, `@theme`, `@theme inline` (light) và `.dark`, `[data-theme="dark"]`, `@media (prefers-color-scheme: dark) :root` (dark). Selector `:root, .dark` áp cho cả hai.
 - Bỏ qua: biến trong selector component, `:root` nằm trong `@media` breakpoint/reduced-motion, khai báo tự trỏ (`--x: var(--x)` của Tailwind), `@import`/`@apply`/`@tailwind`.
-- File sau ghi đè file trước — truyền theo thứ tự import thật của app (ví dụ MiVida: `mivida-website.css` → `globals.css` → `portal-tokens.css`).
+- File sau ghi đè file trước — truyền theo thứ tự import thật của app (ví dụ: `website.css` → `globals.css` → `portal-tokens.css`).
 - `--set "--name=value"`: giá trị chỉ có lúc chạy (font từ `next/font`).
 
 ## Đầu ra (một file HTML tự chứa)
@@ -30,4 +30,4 @@ Khung trang dùng biến riêng `--tk-*` nên không lẫn với token dự án.
 
 ## Đã thử
 
-MiVida Portal (`packages/ui/src/styles`, 29/10/2026): 307 token, 11 cặp, tất cả đạt AA ở cả light và dark (primary 6.08:1, red-flag 5.62:1 light / 4.66:1 dark); không tràn ngang ở 1440/390.
+Một dự án thật (`packages/ui/src/styles`, 10/2026): 307 token, 11 cặp, tất cả đạt AA ở cả light và dark (primary 6.08:1, red-flag 5.62:1 light / 4.66:1 dark); không tràn ngang ở 1440/390.

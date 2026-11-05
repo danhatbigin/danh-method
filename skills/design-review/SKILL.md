@@ -35,6 +35,12 @@ Mục tiêu: chứng minh bản chạy thật đạt PRD + USER_FLOW + DESIGN-NO
 5. Tương phản AA ≥ 4.5:1 trên badge, pill, nút chính (đo, không ước).
 6. Bề mặt khách hàng không lộ dữ liệu nội bộ.
 
+### Kịch bản và hiệu ứng (v0.5)
+
+- Đường Vừa/Đủ: nghiệm thu gắn **ID vN** của từng kịch bản đã duyệt, không chỉ AC. Kịch bản có Spec Issue mở → BLOCKED-SPEC, không ghi ĐẠT.
+- Mỗi hành động kiểm **toàn bộ hiệu ứng quan sát được** (mọi người nhận, thông báo, bài đăng, trạng thái), cả thiếu lẫn thừa/trùng — theo `review-report/references/regression-checklist.md` điểm 1–2.
+- Nghiệm thu đạt chưa phải merge-ready; kết quả vào gói review owner (`review-report` §4.5).
+
 ### Trung thực
 - Trạng thái: **ĐẠT (test)**, **ĐẠT (kiểm lại được)**, **MỘT PHẦN**, **ĐẠT (có lỗi Bn)**, **CHƯA ĐẠT**, **KHÔNG KIỂM ĐƯỢC**, **KHÔNG CẦN SỬA**. Ghi loại bằng chứng; unit test không chứng minh đã kiểm browser. Không kiểm được ≠ đạt (A8.1/D9).
 - AC chưa đạt/chưa kiểm/MỘT PHẦN → feature chưa nghiệm thu đầy đủ. ĐẠT (có lỗi Bn) không xoá lỗi: ghi mức B#, tác động và ai chấp nhận; lỗi blocker vẫn chặn merge-ready. KHÔNG CẦN SỬA phải có PRD/bằng chứng giải thích.

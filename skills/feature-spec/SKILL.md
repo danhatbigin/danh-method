@@ -1,6 +1,6 @@
 ---
 name: feature-spec
-description: Writes the feature documents of the Danh Method (Stage 1–3) — intake, structural decisions, then PRD, USER_FLOW, GUIDANCE and TASKS with locked decisions (Dnn/Wnn), open questions (Q1..Qn with proposed defaults), acceptance criteria (ACnn), entry routes and tasks checked against the 3-step rule and 6×6 rule. Use when starting a new feature, when someone says "viết PRD", "viết spec", "mô tả chức năng để anh duyệt", "user flow", "chia task", or before any code is written for a feature.
+description: Writes the feature documents of the Danh Method (Stage 1–3) — intake, structural decisions, then PRD, USER_FLOW, GUIDANCE and TASKS with locked decisions (Dnn/Wnn), open questions (Q1..Qn with proposed defaults), acceptance criteria (ACnn), entry routes and tasks checked against the 3-step rule and 6×6 rule; for Medium/Full tracks also writes data invariants with a write map (every writer/caller/job, lock order, version tokens, role×status, scale budgets) and approved SCENARIOS handed to scenario-tests. Use when starting a new feature, when someone says "viết PRD", "viết spec", "mô tả chức năng để anh duyệt", "user flow", "chia task", or before any code is written for a feature.
 ---
 
 # Feature spec (Stage 1–3)
@@ -44,6 +44,13 @@ Quy tắc viết:
 - Ghi "Không làm" (ngoài phạm vi) cụ thể như phạm vi.
 - Không chép dữ liệu thật của khách/bệnh nhân vào tài liệu; dùng dữ liệu hư cấu.
 - Thêm dòng CHANGELOG + dòng mục lục README.
+
+## 3.5 Bất biến, bản đồ ghi và kịch bản (đường Vừa/Đủ)
+
+- Feature có ghi dữ liệu → GUIDANCE §5 **bất biến + bản đồ ghi** theo `references/data-invariants-template.md`: bảng → mọi writer/caller/job, thứ tự khoá, token, vai trò × trạng thái, quan hệ phụ thuộc, ngân sách quy mô. Phần chưa chốt ghi "đề xuất", không thành PASS. Owner kỹ thuật duyệt.
+- Viết `SCENARIOS.md` từ AC + bất biến + quyết định D-xx (skill `scenario-tests`, mẫu `scenarios-template.md`). Trình PO bằng kịch bản trực quan; PO duyệt nghiệp vụ, owner duyệt kỹ thuật.
+- Khai đường dự kiến (Nhẹ/Vừa/Đủ) trong TASKS (`Đường: …`).
+- Lý do: PRD thường chỉ nói hành vi mong muốn; tranh chấp, khoá, bản cũ, phân trang, quy mô, vai trò × trạng thái không được viết ra thì không có gì để quét và không có chuẩn để test — lỗi chỉ lộ ở review, mỗi trường hợp tốn một vòng.
 
 ## 4. Gate
 

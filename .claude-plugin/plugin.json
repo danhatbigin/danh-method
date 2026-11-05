@@ -1,7 +1,7 @@
 {
   "name": "danh-method",
-  "version": "0.4.0",
-  "description": "Danh Method — a designer-led workflow to solo-build a product with AI agents: spec first, HTML preview gate, contract prompts, subagent execution, honest verification and acceptance. Distilled from shipping a production-grade product end-to-end.",
+  "version": "0.5.0",
+  "description": "Danh Method — a designer-led workflow to solo-build a product with AI agents: spec first, data invariants and approved scenarios, locked scenario tests, HTML preview gate, one vertical-slice implementer, independent review with convergence, honest verification and acceptance.",
   "author": {
     "name": "Danh Nguyen",
     "email": "danh.nguyen@bigin.vn"
@@ -15,6 +15,8 @@
     "subagents",
     "verification",
     "bigin",
-    "design-tokens"
+    "design-tokens",
+    "scenario-tests",
+    "convergence-review"
   ]
 }

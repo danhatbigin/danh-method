@@ -1,4 +1,4 @@
-# Quy tắc kiểm tra (testing policy) · v1.1
+# Quy tắc kiểm tra (testing policy) · v1.2
 
 Mục tiêu: chất lượng đủ, tốn ít nhất. **Script quyết định cần kiểm tra gì, không phải bạn.** Không cần đọc mã nguồn `verify.mjs`.
 
@@ -30,7 +30,7 @@ Lệnh cụ thể của từng tier nằm trong `.verify/config.json`. Xem thử
 Dòng cuối: `verify: tier N · STATUS · <đếm> · security: STATUS`.
 
 - `PASS`: lệnh đã chạy và xanh.
-- `FAIL`: lệnh đã chạy và đỏ. Phân loại trước khi sửa theo bảng dưới; chỉ lỗi code trong phạm vi tính lượt, tối đa một lần hoặc số lượt đã cấp; còn đỏ thì dừng và báo.
+- `FAIL`: lệnh đã chạy và đỏ. Phân loại trước khi sửa theo bảng dưới (ENV / FLAKY / PRE-EXISTING / SPEC / TEST / CODE); chỉ lỗi code trong phạm vi tính lượt, sửa theo nhóm nguyên nhân trong số lượt đã cấp; còn đỏ thì dừng và báo. ENV và lỗi có bằng chứng đã có trên main không tính lượt.
 - `SKIPPED`: không có gì để chạy (docs-only) hoặc bị bỏ vì lệnh trước đã FAIL. **Không phải là đã kiểm tra.**
 - `NOT_CONFIGURED`: thiếu script/công cụ để chạy kiểm tra này. **Không được báo là xanh**; báo cho người giao việc.
 
@@ -82,3 +82,11 @@ Khi được giao workflow preview, người điều phối chạy renderer comp
 Ghi tên test + assertion + message nguyên văn, base, lệnh/log và lượt còn lại. Không đổi task/agent/phiên/base hay xoá log để lách; không skip test/hạ tier. Chưa có chứng cứ thì chưa phân loại. FAIL vẫn là FAIL và chặn merge-ready kể cả miễn lượt.
 
 Tiếp quản: `--base <mốc tiếp nhận>` để không bỏ việc dở; không thay bằng task-start mới. `prTimeoutSec` là timeout riêng mỗi lệnh PR (mặc định 900s), `timeoutSec` cho lệnh thường. Biết suite vượt giới hạn thì báo owner, không chạy lại cùng cấu hình.
+
+## Bổ sung v1.2
+
+- Có check SKIPPED ngoài docs-only → **PARTIAL**, exit 4, không phải PASS. Lỗi preflight DB/dump → **ENV**, exit 5; sửa môi trường không tính lượt sửa code. Tier ≥2 tiếp tục lint/test sau typecheck FAIL; tier 0/1 giữ nhẹ.
+- Lỗi đã có trên main phải có bằng chứng trong `knownFailures` (command chính xác, regex chữ ký lỗi và reference tới main); báo SKIPPED/PARTIAL, không tính lượt sửa. Không tự bỏ lỗi chưa xác minh.
+- Mở phiếu Spec Issue → **BLOCKED-SPEC** (exit 6), ghi vào HANDOFF và `blockedSpec` của config; tiếp tục phần độc lập. Không được sửa spec test hoặc manifest để làm xanh. Dùng mẫu `skills/scenario-tests/references/spec-issue-template.md` của plugin danh-method. ở Spec; chỉ người dịch cập nhật sau quyết định/version được duyệt.
+- Không bàn giao kiểu "cho owner chạy …". Kiểm chưa chạy phải ghi CI nào sẽ chạy, hoặc người nhận cụ thể theo vai trò và hạn; chưa có người nhận/hạn thì ghi bị chặn, không báo xong.
+- Cổng PR chỉ chạy khi chuẩn bị ready; bản draft không đồng nghĩa đã kiểm full suite. Quy trình CI thay thế khi workflow được owner duyệt/kích hoạt; CI chưa kích hoạt không được ghi đang chạy.

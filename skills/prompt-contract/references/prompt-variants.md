@@ -1,6 +1,6 @@
 # Các biến thể prompt
 
-Mọi biến thể đều có 12 thành phần trong SKILL.md; dưới đây là phần **khác nhau**. Mẫu gốc MiVida: `prompts/2026-10-28-workouts-{design,logic,ui}.md`, `2026-10-29-workouts-stage6-acceptance.md`, `2026-10-28-medication-pr22-review-v2-fixes.md`, `2026-10-15-resume-cd08.md`.
+Mọi biến thể đều có 12 thành phần trong SKILL.md; dưới đây là phần **khác nhau**. Mẫu gốc: các prompt design/logic/ui/acceptance của dự án gốc (10/2026).
 
 ## design
 
@@ -11,18 +11,24 @@ Mọi biến thể đều có 12 thành phần trong SKILL.md; dưới đây là
 - Cách làm: cấu trúc trước → tự kiểm 3 bước → style bằng token. ui-ux-pro-max nếu cần;
 - Bàn giao 3–5 dòng: renderer/preview/provenance/parameters, E/T, câu hỏi, đề xuất; “Ảnh: 0 — điều phối chụp”. Điều phối render, chụp và viết REVIEW từng vòng.
 
-## logic
+## test-translate
 
-- Vai: agent code làm **trọn phần logic** một feature; UI mới **chưa** làm (design đang chạy song song).
-- "Gặp chỗ phải quyết về sản phẩm thì dừng và hỏi; không tự chọn."
-- Q chưa duyệt: chỉ dùng mặc định khi người phụ trách đã uỷ quyền rõ; ghi trạng thái đề xuất, không ghi là đã chốt.
-- Nhánh/worktree riêng; chép file local không nằm trong git (`.verify/`, `CLAUDE.local.md`, `AGENTS.override.md`, `.env`), không commit chúng.
-- Phạm vi: schema/migration, quyền, service, job, view model, thông báo, test. **UI hiện tại chỉ sửa tối thiểu để không vỡ.**
-- Quy tắc: TDD; ghi trong transaction; view model đọc một lần, có test trần truy vấn; quyền qua một chỗ tập trung; code không chứa dữ liệu mẫu (demo ở file/dump ngoài repo); khoá test dùng chung; verify theo tier; dev server chỉ khi thật cần, đúng một cổng riêng, rồi tắt.
-- Điểm dừng: migration có thể đổi dữ liệu đang có (báo kế hoạch + số bản ghi bị ảnh hưởng trên DB bản sao trước khi chạy); PRD không trả lời mà ảnh hưởng dữ liệu/quyền; dữ liệu demo cần duyệt trước khi xuất dump.
-- Bàn giao: log ngày + HANDOFF (HEAD, commit theo task, số test, `verify:`, Đạt / Khác / UNVERIFIED); push; **draft PR** ghi "Depends on #n" và "Theo tài liệu: …"; báo 3–5 dòng: xong tới task nào, cần quyết gì, view model nào sẵn sàng cho UI.
+- Đầu vào: danh sách ID vN đã đúng người duyệt; đường dẫn SCENARIOS, giao diện công khai, INV liên quan. Không cấp code đang sai để suy expected.
+- Trước khi giao: điều phối chạy `spec-lock --unlock <feature> --reason "<IDs>"`.
+- Làm: theo `scenario-tests/references/translation-rules.md`; header `@spec`; chứng minh đỏ trước; `spec-guard --update <ID>` từng ID; commit test + manifest.
+- Dừng: kịch bản mơ hồ/mâu thuẫn → SI (b)/(c), dịch các ID còn lại.
+- Trả về: bảng ID · file · bằng chứng đỏ · `spec-guard:` nguyên văn · SI. Điều phối chạy `spec-lock --lock`.
+
+## slice
+
+- Vai: `slice-implementer`, một lát dọc DB → domain → action → UI. Kèm AGENT-RUN: nhánh/worktree, allowlist, file cấm (`tests/spec/**`, manifest, budget, `.verify/`), INV + bản đồ ghi, test khoá phải xanh, preview G1.
+- Mỗi thay đổi ghi dữ liệu: quét mọi writer/caller/job cùng bảng. Test kỹ thuật đỏ khi bỏ bản sửa.
+- Không chạy full gate; verify có phạm vi. Bàn giao full SHA, diff/untracked, file đổi so với allowlist, chưa kiểm.
+- Lệch test khoá → SI, BLOCKED-SPEC, làm mục khác.
 
 ## ui
+
+- Chỉ đường **Nhẹ** (UI thuần, không thêm/đổi đường ghi dữ liệu). Diff lên tier ≥2 hoặc cần action ghi mới → dừng, nâng đường, chuyển `#slice`.
 
 - Vai: agent code làm **giao diện**; logic đã có task cần dùng với dòng `<TASK> pushed <hash>` (nêu nhánh/PR); design đã duyệt. UI fetch+merge nhánh logic trước mỗi task, không đợi toàn bộ logic (A6.1/D7).
 - "Quyết định kỹ thuật thuần: tự chọn phương án an toàn, ghi 'giả định' trong HANDOFF, đi tiếp. Dừng theo điều kiện prompt hợp đồng và execute-tasks: PRD chưa trả lời, việc ngoài quyền/phạm vi hoặc lỗi code còn FAIL sau ngân sách; làm tiếp phần độc lập."
@@ -39,7 +45,7 @@ Mọi biến thể đều có 12 thành phần trong SKILL.md; dưới đây là
 - Ảnh vào `review-screens/acceptance-<ngày>/` đặt tên theo AC.
 - Báo cáo: ghi **trung thực** (Đạt / Chưa đạt / Không kiểm được và vì sao; không bịa PASS) vào `ACCEPTANCE-<ngày>.md`; báo ≤ 10 dòng.
 
-## fix (theo review PR / audit)
+## fix (theo review PR / audit · đường Nhẹ hoặc lỗi lẻ; Vừa/Đủ dùng fix-by-group)
 
 - Trước đó: viết spec sửa `features/<f>/FIXES-<ngày>.md` với S1…Sn (mỗi mục: lỗi, file:dòng, tái hiện, "xong khi", "không làm"), nhóm Major / Minor; đối chiếu PRD xác nhận nghiệp vụ nào đúng/sai.
 - "Bạn làm một mình, tuần tự, từng mục một. Không mở sub-agent." (khi các mục chạm cùng vùng code)
@@ -48,6 +54,26 @@ Mọi biến thể đều có 12 thành phần trong SKILL.md; dưới đây là
 - Verify sau nhóm Major, rồi sau nhóm Minor; FAIL → phân loại theo bảng FAIL của execute-tasks; lỗi code tính lượt theo ngân sách, vẫn FAIL thì dừng.
 - Điểm dừng bắt buộc liệt kê theo từng mục rủi ro (ví dụ migration có xoá dữ liệu, mục buộc đổi nghiệp vụ).
 - Kết thúc: push; HANDOFF có HEAD trước/sau, bảng S1–Sn (commit, tên test, kết quả), dòng `verify:`, phần chưa kiểm, giả định chờ duyệt, ghi chú cho owner; báo ≤ 8 dòng.
+
+## fix-by-group
+
+- Đầu vào: ledger (`LEDGER-<ngày>.md`) đã phân loại ENV/FLAKY/PRE-EXISTING/SPEC/TEST/CODE và nhóm G01…Gn theo nguyên nhân gốc, mỗi nhóm có danh sách mọi hàm/job/caller.
+- Mỗi nhóm một commit: nguyên nhân → mọi đường liên quan → test đỏ/xanh/mutation (đổi code thực thi) → bằng chứng. Không chạy tổng giữa các nhóm.
+- Nhóm SPEC: không sửa; mở/đối chiếu SI. Nhóm ENV: khắc phục môi trường, không tính lượt.
+- Xong: bàn giao để điều phối freeze, kiểm theo vùng một lần, review toàn PR lại.
+
+## observe-diagnose
+
+- Chốt HEAD/base, working tree, Spec SHA, kit/config. **Không vá** trong lượt này.
+- Một lượt kiểm theo vùng toàn diff + review toàn PR theo bất biến. ENV khắc phục rồi chạy lại.
+- Ra: ledger gộp + nhóm nguyên nhân + đề xuất thứ tự sửa + phần chưa kiểm có người nhận. Người chẩn đoán tách người sửa khi có thể; cùng người thì nói rõ giới hạn.
+
+## feature-kickoff
+
+- Điều phối đọc: operator profile, project config, `danh-method` §2, `subagent-orchestration`, `review-report/references/review-convergence.md`, regression checklist.
+- Tạo AGENT-RUN trong `features/<f>/`, khai đường. Chỉ nhận feature/kịch bản đã được giao; không tự chọn feature hay coi nghiệp vụ chưa duyệt là đã duyệt.
+- Giao Test, Fix, Review vào ngữ cảnh độc lập; không ghi đồng thời một checkout; chỉ điều phối chạy verifier sau freeze. DB qua `verify-runtime` theo cấu hình người dùng.
+- Đủ: hai lượt review sạch cùng commit, PR gate, gói review. Không tự bật CI. Đầu ra: thay đổi, bằng chứng, giới hạn, bước tiếp.
 
 ## resume / takeover
 

@@ -1,7 +1,7 @@
 # Mẫu brief cho subagent
 
 ```
-Vai: <design-prototyper | logic-implementer | ui-implementer | code-reviewer | acceptance-tester> cho feature <F> của <Sản phẩm>.
+Vai: <design-prototyper | test-translator | slice-implementer | ui-implementer | code-reviewer | acceptance-tester> cho feature <F> của <Sản phẩm>.
 Người giao: agent điều phối. Báo cáo trả về cho agent điều phối (không phải người dùng cuối) — ngắn, có bằng chứng.
 
 ĐỌC TRƯỚC (theo thứ tự, đường dẫn tuyệt đối):

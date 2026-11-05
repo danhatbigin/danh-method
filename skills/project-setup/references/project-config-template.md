@@ -25,13 +25,15 @@ Cập nhật: <ngày> · bởi <vai>
 - Trang token đã duyệt (G0): `design-system/tokens.html` · v<n> · <ngày> · dựng lại: `node <danh-method>/skills/design-tokens/scripts/render-token-page.mjs --css … --out design-system/tokens.html`
 - ui-ux-pro-max: <có / không — người dùng chọn bỏ qua ngày …>
 - Font: heading <…>, body <…> · Icon: <bộ icon, stroke khi nghỉ / solid khi active>
-- Luật riêng đã chốt: <ví dụ MiVida: No Border — tách lớp bằng nền/khoảng cách/bóng; radius 28/22; một màu đỏ cho red flag/lỗi/xoá>
-- Pattern mẫu đã duyệt (feature tham chiếu): <features/medication/prototype/…>
+- Luật riêng đã chốt: <ví dụ: No Border — tách lớp bằng nền/khoảng cách/bóng; radius 28/22; một màu đỏ cho cảnh báo/lỗi/xoá>
+- Pattern mẫu đã duyệt (feature tham chiếu): <features/<feature>/prototype/…>
 
 ## Kiểm tra
 - Verify-kit: `node .verify/verify.mjs --task-start` → `node .verify/verify.mjs`; PR gate `--pr`.
 - Breakpoint kiểm UI: 1440 / 768 / 390 (+1024/320 khi nghiệm thu) · Theme: light + dark
 - Khoá test dùng chung: <đường dẫn .lock> (chờ nếu người khác giữ)
+- Runtime DB (`.verify/runtime.json`, người dùng trả lời lúc setup): mode <none/container/local/remote> · dữ liệu mẫu <dump qua biến … / seed … / không> · reset mặc định <baseline/archive> · trần PR <…>s · profile ở <…>
+- Đường mặc định cho feature mới: <Vừa> · Test khoá: `tests/spec/**` + `tests/spec-manifest.json`, guard `tools/spec-guard.mjs`, CODEOWNERS <bật/chưa>
 
 ## Môi trường
 - Cổng demo đang chạy, KHÔNG đụng: <3001, 3002>
@@ -40,8 +42,8 @@ Cập nhật: <ngày> · bởi <vai>
 - Dữ liệu ngoài repo: <D:\Projects\_<tên>-data> (dump có ngày trong tên, không commit)
 
 ## Quyền
-- Người phụ trách sản phẩm: <vai>, quyết sản phẩm/UX.
-- Owner kỹ thuật: <vai>, review + merge PR.
+- Người phụ trách sản phẩm (PO): <vai>, quyết sản phẩm/UX, duyệt kịch bản nghiệp vụ, quyết Spec Issue (b)/(c).
+- Owner kỹ thuật: <vai>, duyệt bất biến/kịch bản kỹ thuật, review + merge PR, bật CI/branch protection. PO duyệt không suy ra owner đã duyệt.
 - Roles trong sản phẩm (để test quyền): <Manager, Consultant, MD, Coach…>
 
 ## Ngôn ngữ

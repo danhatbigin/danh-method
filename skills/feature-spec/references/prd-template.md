@@ -55,7 +55,7 @@ Người phụ trách sản phẩm duyệt hoặc sửa. Đổi mặc định th
 | Q1 | <ngưỡng / quy tắc> | <giá trị; là cấu hình để đổi sau> |
 ```
 
-Mẹo từ MiVida:
+Mẹo:
 - Ngưỡng nghiệp vụ (ngày, %, số buổi) luôn để **là cấu hình** để đổi không cần migration.
 - Công thức số liệu ghi rõ, kể cả khi thiếu dữ liệu: trả `null` / "Not enough data", không bịa `0`.
 - Thao tác đồng thời / trùng lặp (thanh toán 2 lần, webhook lặp) phải có quyết định riêng.

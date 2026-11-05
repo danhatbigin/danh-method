@@ -1,6 +1,6 @@
 # Mẫu operator profile — `process/operator-<tên>.md`
 
-> Mẫu gốc: `agent-rules-danh.md` của MiVida. File này **bổ sung** cho quy tắc chung của repo code (`AGENTS.md`, working-rules). Khác nhau thì: quy tắc repo thắng ở phần code, file này thắng ở cách làm việc với người này. **Không bao giờ commit file này vào repo code.**
+> File này **bổ sung** cho quy tắc chung của repo code (`AGENTS.md`, working-rules). Khác nhau thì: quy tắc repo thắng ở phần code, file này thắng ở cách làm việc với người này. **Không bao giờ commit file này vào repo code.**
 
 ```markdown
 # Cách làm việc với <Tên> · <vai: designer | developer>

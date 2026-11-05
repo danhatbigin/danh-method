@@ -2,7 +2,7 @@
 
 How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer can build a complete production product end-to-end** — distilled from shipping a real-world, production-grade product. Built for both Danh and junior designers/developers building new products.
 
-**Cadence:** (Project kickoff: approved token playground G0) → Idea → Spec (PRD / Flow / Guidance / Tasks) → Real-component HTML preview → Approval (G1) → Contract prompt (G2) → Subagent execution (Design ‖ Logic → UI) → Read-only code review → Honest acceptance testing (Stage 6) → Owner approval (G3) → Merge.
+**Cadence:** (Project kickoff: approved token playground G0) → Idea → Spec (PRD / Flow / Guidance / Tasks) → Real-component HTML preview → Approval (G1) → Pick the track from the real diff (Light / Medium / Full) → Data invariants + approved scenarios → Preview ‖ locked scenario tests → Contract (AGENT-RUN) → One vertical-slice implementer → Freeze & verify → Full-PR review by invariant (Full track: convergence) → Honest acceptance → One owner review package (G3) → Merge.
 
 ## Installation
 
@@ -15,7 +15,7 @@ How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer c
 1. Install the plugin and say: *"Set up a new project with danh-method"* (or *"Setup dự án mới theo danh-method"*) → `project-setup` scaffolds the spec repository, operator profile (designer/developer), and project config, then checks for companion plugins (`Superpowers` and `ui-ux-pro-max`) and asks permission before installing if missing.
 2. *"Build the token playground"* (or *"Dựng trang token"*) → `design-tokens` scans installed UI packages, asks you to choose **one** UI library (`shadcn/ui` or `HeroUI`), verifies it is installed, and scaffolds an interactive **Token Playground** (inspired by `ui.shadcn.com/create`) rendered from real components with live AA contrast checks for Gate G0 approval.
 3. First feature: *"Write PRD for feature X"* (or *"Viết PRD cho feature X"*) → `feature-spec`.
-4. Approve the PRD → *"Dispatch subagents"* (or *"Subagent nha em"*) → `subagent-orchestration` dispatches parallel `design-prototyper` ‖ `logic-implementer`, followed by `ui-implementer`, `code-reviewer`, and `acceptance-tester`.
+4. Approve the PRD → *"Dispatch subagents"* (or *"Subagent nha em"*) → `subagent-orchestration` picks the track, runs `design-prototyper` ‖ `test-translator`, then `slice-implementer` (Light track: `ui-implementer`), `code-reviewer`, and `acceptance-tester`. The `pipeline-nudge` hook reminds you of the next step as the state on disk changes.
 
 ## Skills
 
@@ -24,17 +24,18 @@ How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer c
 | `danh-method` | Entry point: philosophy, lifecycle, communication rules, two-axis source of truth, companion tools |
 | `project-setup` | New project or onboarding a junior: spec repo, operator profile, project config, verify-kit |
 | `design-tokens` | Stage 2: choose 1 UI library (`shadcn/ui` or `HeroUI`) → verify package gate → interactive token playground from real components (live controls, AA contrast, light/dark, CSS/JSON/MD export) → Gate G0 |
-| `feature-spec` | Stages 1–3: PRD / USER_FLOW / GUIDANCE / TASKS, decision log + Q list, 3-step entry/task rule, 6×6 density |
+| `feature-spec` | Stages 1–3: PRD / USER_FLOW / GUIDANCE / TASKS, decision log + Q list, 3-step rule, 6×6 density; data invariants + write map and SCENARIOS for Medium/Full tracks |
+| `scenario-tests` | Approved scenarios → red-first locked tests (hash manifest, `spec-guard`), Spec Issues instead of editing tests, `spec-lock` Test window |
 | `design-prototype` | Real-component preview + offline MD/JSON token editor + provenance hashes; coordinator captures screenshots and writes REVIEW |
 | `design-review` | Stages 5–6: UX audit, acceptance testing against a cloned DB, honest ACCEPTANCE report |
 | `prompt-contract` | Master contract + delta / two-turn A/B prompts, takeover protocol, completion criteria, HANDOFF |
-| `execute-tasks` | TDD/verify tiers, FAIL taxonomy & retry budget, takeover base, dedicated PR timeout, safe git & demo data |
-| `subagent-orchestration` | Logic–UI handshake via pushed commit hash / C0 contract / file-glob ownership, single-writer takeover, TEAM-BOARD |
-| `review-report` | Mechanism-first root-cause tracing, read-only diff review, Issue → Cause → Impact → Fix table |
+| `execute-tasks` | TDD, verify-kit v1.2 honest statuses (PARTIAL / ENV / BLOCKED-SPEC), failure taxonomy & root-cause groups, user-configured DB runtime, safe git |
+| `subagent-orchestration` | Track selection by diff, AGENT-RUN contract with allowlists, independent Test / Fix / Review contexts, freeze + single verify point, observe → diagnose → fix |
+| `review-report` | Mechanism-first root cause, full-PR review by invariant, cross-round ledger, convergence review (Full track), 7-point regression checklist, owner review package |
 
 ## Subagents
 
-`design-prototyper` · `logic-implementer` · `ui-implementer` · `code-reviewer` (read-only) · `acceptance-tester`.
+`design-prototyper` · `test-translator` · `slice-implementer` · `ui-implementer` (Light track) · `code-reviewer` (read-only) · `acceptance-tester`.
 
 > [!IMPORTANT]
 > **Crucial Architectural Rule: Use Single Coordinator + Ephemeral Subagents ONLY — Avoid Multi-Agent Systems.**
@@ -46,11 +47,14 @@ How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer c
 
 - **Companion plugin: Superpowers** (`obra/superpowers`, MIT). `check-superpowers` hook detects it at session start and asks permission before installing (Claude Code: `/plugin marketplace add obra/superpowers-marketplace` → `/plugin install superpowers@superpowers-marketplace`; Antigravity: `agy plugin install https://github.com/obra/superpowers`). Stage-to-skill mapping in `skills/danh-method/references/install-superpowers.md`.
 - **Companion plugin: ui-ux-pro-max** (`nextlevelbuilder/ui-ux-pro-max-skill`, MIT). `check-uipro` hook detects it and asks permission with clear rationale before installing (Cowork: plugin card; Claude Code: `/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill` → `/plugin install ui-ux-pro-max@ui-ux-pro-max-skill`; Codex/Antigravity: `uipro init`).
-- **Automatic Stage Detection & Budget Subagent Proposal** (`skills/danh-method/scripts/detect-stage.mjs`): Auto-detects project stage from disk (Stages 0, 0.5, 1–3, 4A, 4B, 4C, 5, 6, COMPLETE) and proactively proposes subagent assignments with economical models (`flash` / `haiku` / `mini`) for user confirmation before spawning.
+- **Automatic Stage Detection & Budget Subagent Proposal** (`skills/danh-method/scripts/detect-stage.mjs`): Auto-detects project stage from disk (Stages 0, 0.5, 1–3, 4A, 4B, 3S, 3T, 4C, 5, 6, COMPLETE) and proactively proposes subagent assignments with economical models (`flash` / `haiku` / `mini`) for user confirmation before spawning.
 - **UI Package Gate & Token Playground** (`skills/design-tokens/scripts/check-ui-packages.mjs` & `scaffold-playground.mjs`): Enforces choosing strictly one UI library (`shadcn/ui` or `HeroUI`), inspects real installed components (including HeroUI v3 compound component anatomy and `@heroui/styles` variables), and scaffolds a live playground with color pickers, radius/font/spacing controls, live WCAG AA contrast, and CSS/JSON/Markdown export/import.
 - **Appendix token table script** (`skills/design-tokens/scripts/render-token-page.mjs`): Generates a static reference table from CSS variables (supplementary appendix only; does not replace the real-component G0 playground).
 - **`guard-git` Hook** (Claude Code): Blocks destructive git commands (`reset --hard`, `stash`, `clean -f`, force push, `checkout --`/`.`, `restore .`, branch deletion). Requires Node.
-- **Verify-kit v1.1** (`skills/execute-tasks/assets/verify-kit`): Runs change-appropriate verification tiers; install via `node install.mjs <project>`.
+- **Verify-kit v1.2** (`skills/execute-tasks/assets/verify-kit`): Change-appropriate verification tiers with honest statuses (PARTIAL / ENV / BLOCKED-SPEC never green), area-based test selection, `knownFailures`, DB preflight, selftest; install via `node install.mjs <project>`.
+- **`verify-runtime.mjs`**: Optional DB lifecycle around the verifier (container / local / remote, baseline or archive reset). Configured only from the user's answers (`--questions` → `--init`); it never guesses.
+- **`guard-spec-tests` Hook** (Claude Code): Blocks edits to locked scenario tests and the manifest outside the coordinator's `spec-lock` Test window. Policy-only; `spec-guard` and CODEOWNERS are the real detection/lock.
+- **`pipeline-nudge` Hook** (SessionStart + UserPromptSubmit): Reads the real state (approved scenarios without tests, open Spec Issues, diff heavier than the declared track) and prints the next step only when the state changes.
 - **Screen capture script** (`skills/design-prototype/scripts/capture-screens.mjs`): Captures `1440 / 768 / 390` × `light / dark` viewports and flags horizontal overflow. Requires Playwright.
 - **Portable rules** (`portable/`): `AGENTS.md` and `GEMINI.md` for Codex, Antigravity, and AionUI.
 - **Core 6-stage design workflow:** `skills/danh-method/references/design-workflow.md`.
@@ -60,9 +64,22 @@ How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer c
 - **Strict Separation of Docs & Source:** All research notes (`research/`), product specs (`specs/`), prompts (`prompts/`), work logs (`log/`), and handoffs (`HANDOFF.md`) MUST live in a dedicated documentation directory (`docs/` or `<project>-spec`) outside the source code repository. Never commit research or project-management docs into the source repo.
 - Skill instructions are written in Vietnamese for the team; skill `description` frontmatter is in English for reliable agent trigger matching.
 - Stack-neutral architecture. Project-specific conventions (border rules, typography, allowed ports, chosen UI library) live in the target project's `process/project.md`.
-- Version `0.4.0` · 2026-10-29.
+- Version `0.5.0` (pilot) · 2026-11-05. The v0.5 pipeline has not yet run end-to-end on a full feature; measure owner review rounds on the next features and adjust.
 
 ## Changelog
+
+### v0.5.0 (pilot)
+Why: a data-heavy feature needed 23 review rounds and 28 prompts in 4 days. Root cause was the process's sensors, not careless agents: the inner loop (agent + verify) could not see concurrency, scale or role × status bugs, review returned instances instead of bug classes, and agents loosened their own tests.
+- **Track by real diff:** Light / Medium / Full chosen from `verify --classify`; only raise, never lower.
+- **Data invariants + write map** in GUIDANCE (lock-then-reread, required version tokens at the domain, cover every writer incl. background jobs, 1→N changes, scale budgets in rows/binds/bytes, role × status × sensitive data, test evidence rules).
+- **Approved scenarios → locked tests:** new `scenario-tests` skill, `test-translator` agent, `spec-guard` hash manifest, Spec Issues (a/b/c/d) and BLOCKED-SPEC; agents never edit a test to match code.
+- **One vertical-slice implementer:** `logic-implementer` replaced by `slice-implementer`; `ui-implementer` kept for Light-track UI only.
+- **Test / Fix / Review in independent contexts** with an AGENT-RUN contract, file allowlists, freeze, and a single verify point; isolation declared honestly as `policy-only`.
+- **Observe → diagnose → fix by root-cause group** with a cross-round ledger (ENV / FLAKY / PRE-EXISTING / SPEC / TEST / CODE).
+- **Convergence review (Full track only):** full-PR review by invariant, new / returning / rejected labels, evidence levels, two clean passes on the same commit, brake after three rounds.
+- **Regression checklist (7 points)** and **one owner review package** with efficiency metrics (target ≤ 2 owner rounds).
+- **Verify-kit v1.2** + configurable `verify-runtime` asked from the user; project-specific references removed.
+- **Hooks:** `guard-spec-tests`, `pipeline-nudge`; `detect-stage` adds stages 3S/3T and track awareness.
 
 ### v0.4.0
 - **Automatic Stage Detection & Proactive Subagent Budget Model Proposal:** `skills/danh-method/scripts/detect-stage.mjs` inspects real files and git status on disk to determine the current stage (0 to 6 and COMPLETE). The coordinator proactively presents a spawn proposal table with recommended budget models (`flash` / `haiku` / `mini`) and waits for user confirmation or model override before dispatching subagents (`skills/subagent-orchestration/references/spawn-proposal-template.md`).
@@ -72,6 +89,6 @@ How Danh Nguyen (Head of Design, Bigin) leads AI agents so **a single designer c
 
 ### v0.3.0
 - Two-axis source of truth (facts vs. decisions); structured FAIL taxonomy with retry budget; takeover base preservation; dedicated PR timeout (`prTimeoutSec`); Gate G3 separated from Stage 6 acceptance.
-- Parallel Logic ‖ UI handshake per pushed task commit hash, C0 anti-duplication API contract, explicit file-glob ownership, and templates B1–B11 (takeover, review, status, TEAM-BOARD, acceptance, demo data).
+- (Superseded in v0.5 by vertical slices) Parallel Logic ‖ UI handshake per pushed task commit hash, C0 anti-duplication API contract, explicit file-glob ownership, and templates B1–B11 (takeover, review, status, TEAM-BOARD, acceptance, demo data).
 - Mandatory real-component prototypes with offline token parameter editor (`skills/design-prototype/scripts/attach-token-editor.mjs`), JSON/Markdown round-trip, and SHA-256 source provenance verification (`skills/design-prototype/references/component-rendering.md`).
 - Coordinator-led screenshot capture and per-round `REVIEW.md`. Automated Node test suite (`node --test tests/*.test.mjs`).

@@ -33,7 +33,8 @@ Ranh giới (brief phải ghi cụ thể; thiếu thì hỏi agent điều phố
 - **Không đổi mã sản phẩm**, không sửa `.verify/`, không chạy `--pr`. Lỗi chặn nghiệm thu → dừng, ghi rõ, báo.
 
 Kiểm (Playwright/CDP hoặc browser đang có, không buộc cài mới):
-- Từng AC trong PRD thành bước cụ thể (role, thao tác, kết quả mong đợi); ảnh bằng chứng đặt tên theo AC vào `review-screens/acceptance-<ngày>/`.
+- Từng AC trong PRD và từng kịch bản đã duyệt (ID vN) thành bước cụ thể (role, thao tác, kết quả mong đợi); ảnh bằng chứng đặt tên theo AC/ID vào `review-screens/acceptance-<ngày>/`.
+- Kiểm **toàn bộ hiệu ứng quan sát được** của mỗi hành động: mọi người nhận, thông báo, bài đăng, trạng thái; cả hiệu ứng thiếu lẫn thừa/trùng.
 - Từng E và T: đếm bước thực tế; hành động chính ở mỗi điểm quyết định.
 - Đổi role: Mine, thứ tự, quyền, popover lý do, server từ chối.
 - 1440 / 768 / 390 (+ breakpoint PRD yêu cầu), light/dark: `scrollWidth === innerWidth`.

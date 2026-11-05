@@ -12,14 +12,17 @@ Prompt là **hợp đồng**: agent nhận nó (subagent, Codex, Antigravity, Cl
 | Loại | Khi nào | Mẫu |
 |---|---|---|
 | **Design** | PRD duyệt, cần preview HTML | `references/prompt-variants.md#design` |
-| **Logic** | PRD duyệt (chạy song song với design) | `#logic` |
-| **UI** | Preview duyệt (G1) + logic có view model | `#ui` |
+| **Test-translate** | Kịch bản duyệt; mở cửa sổ spec-lock | `#test-translate` |
+| **Slice (Fix)** | G1 duyệt + test khoá xong (đường Vừa/Đủ) | `#slice` |
+| **UI** | Đường Nhẹ: UI thuần sau G1 | `#ui` |
 | **Master** | Feature nhỏ, một agent làm trọn | `references/master-prompt-template.md` |
 | **Acceptance** | Code xong, cần Stage 6 | `#acceptance` |
-| **Fix theo review** | Có review PR / audit | `#fix` |
+| **Fix theo nhóm** | Ledger đã nhóm nguyên nhân sau review/verify | `#fix-by-group` |
+| **Quan sát → chẩn đoán** | Hệ thống có sẵn, hoặc nhiều FAIL chưa rõ nguyên nhân | `#observe-diagnose` |
+| **Khởi động feature** | Giao một feature mới cho điều phối | `#feature-kickoff` |
 | **Resume / takeover** | Agent hết hạn mức, đổi agent | `#resume` |
 
-Tách design / logic / UI để chạy song song và để mỗi agent có vùng sở hữu riêng.
+Design ‖ Test chạy song song; Fix là một agent làm trọn lát dọc (bất biến chạy xuyên tầng nên không chia logic/UI). Mỗi prompt Vừa/Đủ kèm AGENT-RUN (skill `subagent-orchestration`): allowlist file, file cấm đổi, mức cách ly thật (`policy-only`).
 
 ## 2. Thành phần bắt buộc (theo thứ tự)
 

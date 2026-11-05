@@ -86,7 +86,7 @@ Dữ kiện: Git/code thật → snapshot prompt → HANDOFF (cache); HEAD lạ 
 - Báo ≤3 đạt / ≤3 cần sửa / 1 quyết định, ưu tiên hình/số đo thật; gom câu hỏi từ đầu và làm phần độc lập khi chờ. Giao việc “Đọc và làm theo <prompt>”. Không dừng sau đọc/kế hoạch/merge, không xong khi còn placeholder; blocker mới có bằng chứng.
 - FAIL: hỏng thừa kế (chứng minh base, commit riêng `broken since <hash>` nếu được giao), test theo PRD cũ (sửa test + comment mã quyết định), môi trường (sửa trong quyền), fixture lệch hợp đồng (sửa fixture, giữ assertion) không tính lượt code. PRD chưa nói thì chốt/cập nhật PRD/cấp lượt mới. Lỗi code tính ngân sách. Tên test/assertion/message ghi nguyên văn; không đổi task/agent/base/xoá log để lách. Miễn lượt vẫn chặn merge-ready nếu còn FAIL.
 - Tiếp quản: một writer/worktree, verifier chỉ đọc; verify `--base <mốc tiếp nhận>` giữ việc dở. Báo cáo `docs/engineering/<feature>-takeover-<ngày>.md`; không kill PID lạ.
-- Logic ‖ UI: commit type/interface an toàn trước chia nhánh; glob không chồng mới chia. Logic báo `<TASK> pushed <hash>`, UI sau G1 fetch+merge trước mỗi task; không đợi toàn bộ logic. “UI cần” có bảng C0 (caller/cần/API có/thiếu/cách bổ sung), không tạo API trùng. Agent thi hành không tự mở subagent.
+- Một agent (`slice-implementer`) làm trọn một lát dọc DB → domain → action → UI; lát lớn chia theo lát dọc, glob không chồng. Commit type/interface an toàn trước khi chia lát. Thiếu dữ liệu ghi “cần: …” với bảng C0, không tạo API trùng. Agent thi hành không tự mở subagent.
 - Stage đúng dòng mình; nhánh xếp chồng merge cha vào con khi cha đổi; trước PR merge-tree với mọi nhánh song song. Không chọn mù ours/theirs. `prTimeoutSec` riêng (900s mặc định), biết timeout thì báo owner, không chạy lại cùng cấu hình.
 - Demo: báo trước, backup pg_dump, dry-run DB tạm, assertions sau nạp; dời lịch là seed lại, không sửa lẻ cột ngày. Nghiệm thu ghi giữ/tua đồng hồ và hệ quả. Dọn DB tạm/lock/server phải rõ chủ và quyền.
 - W15: record header ghost cho cả đối tượng; việc tới hạn ở banner; ≤1 filled/màn, banner sau tonal, không lặp action. State UI khác persist; đọc không auto-choose. Drawer quyết định đưa dữ liệu trước, Return phụ bấm mới hiện lý do; ngoại lệ 4 bước ghi PRD. Scrollbar OS; status map DS để duyệt; radius theo vai, inner=outer−padding. Prototype giao test script mọi trạng thái/E/T/6×6/CTA.
@@ -100,11 +100,26 @@ Superpowers cho kỷ luật thi hành; UI UX Pro Max cho tra cứu/kiểm thiế
 
 ## 11. Tự động nhận diện giai đoạn & Đề xuất Subagent kèm Model tiết kiệm
 
-- Chạy `node skills/danh-method/scripts/detect-stage.mjs [--spec <docs>] [--code <codeRoot>] [--feature <tên>] [--json]` để tự động nhận diện giai đoạn hiện tại (Stage 0, 0.5, 1–3, 4A, 4B, 4C, 5, 6, COMPLETE) dựa trên trạng thái thật của Git và tài liệu trên đĩa.
-- Tại các giai đoạn thi hành cần subagent (Stage 4A, 4C, 5, 6): coordinator **tuyệt đối không âm thầm spawn subagent**.
+- Chạy `node skills/danh-method/scripts/detect-stage.mjs [--spec <docs>] [--code <codeRoot>] [--feature <tên>] [--json]` để tự động nhận diện giai đoạn hiện tại (Stage 0, 0.5, 1–3, 4A, 4B, 3S, 3T, 4C, 5, 6, COMPLETE) dựa trên trạng thái thật của Git và tài liệu trên đĩa.
+- Tại các giai đoạn thi hành cần subagent (Stage 4A, 3T, 4C, 5, 6): coordinator **tuyệt đối không âm thầm spawn subagent**.
 - **Khuyến cáo sống còn (Subagent vs Multi-Agents)**: Chỉ phát triển sản phẩm với mô hình Coordinator + Subagents ngắn hạn (ephemeral), tuyệt đối không dùng multi-agents kể cả khi có orchestrator và phân role (tác giả đã trả giá hơn \$40 tiền API token và rất nhiều thời gian: multi-agents làm phình to context, trễ điều phối và cháy sạch quota).
 - Luôn chủ động xuất bảng đề xuất phân công: vai trò subagent, tác vụ hẹp, vùng file sở hữu (glob cô lập), đề xuất mặc định **model tiết kiệm** (`flash` / `haiku` / `mini`) để bảo toàn quota/chi phí, kèm lý do.
 - Dừng lại chờ người dùng xác nhận 1 trong 3 lựa chọn:
   1. **Đồng ý**: Kích hoạt subagent với model tiết kiệm đã đề xuất.
   2. **Đổi model**: Chọn model mạnh (`pro` / `sonnet` / `inherit`) cho task phức tạp.
   3. **Chạy inline**: Không mở subagent, coordinator trực tiếp thi hành tuần tự trong phiên.
+
+## 12. Pipeline v0.5 (chọn đường, kịch bản, test khoá, review hội tụ)
+
+Không có hook ở Codex/Antigravity/AionUI: các luật dưới đây chỉ dựa vào kỷ luật agent + `spec-guard` khi verify + CODEOWNERS. Chạy tay `node <plugin>/hooks/scripts/pipeline-nudge.mjs --json` đầu phiên để biết bước tiếp.
+
+- **Chọn đường theo diff thật** (`node .verify/verify.mjs --classify`): **Nhẹ** = tier ≤1, không thêm/đổi đường ghi dữ liệu → một agent, verify cuối. **Vừa** = tier 2 → kịch bản + test khoá + một lượt review độc lập toàn diff. **Đủ** = tier 3 hoặc ghi dữ liệu/migration/quyền/tiền/dữ liệu nhạy cảm → toàn bộ. Khai vào `.danh/track.json`; chỉ nâng, không hạ.
+- **Bất biến + bản đồ ghi** trong GUIDANCE trước khi code ghi dữ liệu: bảng → mọi writer/caller/job, thứ tự khoá + đọc lại, token bắt buộc ở domain, vai trò × trạng thái × dữ liệu nhạy cảm, quan hệ 1→N, ngân sách dòng/bind/bytes. Owner kỹ thuật duyệt.
+- **Kịch bản** (`SCENARIOS.md`, bảng ID | Loại | Duyệt | v | Tiêu đề): PO duyệt nghiệp vụ, owner duyệt kỹ thuật; PO duyệt không suy ra owner duyệt.
+- **Test khoá**: agent khác agent code dịch kịch bản → `tests/spec/**` (dòng đầu `// @spec <ID> v<n>`), đỏ trước, khoá bằng `spec-guard --update`. **Không bao giờ sửa test cho khớp code**: lệch → sửa code hoặc mở Spec Issue (`spec-issues/SI-<n>.md`, loại a dịch sai · b kịch bản mâu thuẫn · c PRD sai · d môi trường), mục đó BLOCKED-SPEC, làm việc khác.
+- **Test / Fix / Review là ba ngữ cảnh độc lập.** Không hai agent ghi cùng checkout. Chỉ điều phối chạy verifier sau freeze. Fix không đổi test khoá/manifest/budget/`.verify/`. Mức cách ly ghi thật: `policy-only`.
+- **Quan sát → chẩn đoán → sửa**: gom đủ lỗi trước khi vá; ledger phân ENV/FLAKY/PRE-EXISTING/SPEC/TEST/CODE; nhóm theo nguyên nhân gốc + mọi caller; một nhóm một commit với test đỏ/xanh/mutation đổi code thực thi.
+- **Review toàn PR theo bất biến**, không theo diff commit sửa; nhãn mới/quay lại/bị bác; mức bằng chứng tái hiện DB / phân tích tĩnh / nghi ngờ. Checklist hồi quy 7 điểm.
+- **Đường Đủ: review hội tụ** — hai lượt liên tiếp không major mới, không major mở, cùng commit, cùng cấu hình; đổi candidate reset đếm; 3 vòng vẫn có major mới → quay về hợp đồng, không vá vòng 4.
+- **Verify trung thực**: PARTIAL (còn SKIPPED), ENV, BLOCKED-SPEC không xanh; CI chưa chạy ≠ CI xanh; PASS cũ không thay HEAD mới; phần chưa kiểm có người nhận + hạn. DB test qua `.verify/verify-runtime.mjs` theo `.verify/runtime.json` do **người dùng trả lời** — chưa có thì hỏi, không đoán.
+- **Một gói review cho owner** (SHA, người dùng thấy gì, quyết định cần duyệt, bằng chứng, thứ tự tích hợp, mục mở có người nhận); đo số vòng owner review (mục tiêu ≤ 2).

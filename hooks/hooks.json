@@ -1,5 +1,5 @@
 {
-  "description": "Danh Method: chặn lệnh git phá huỷ việc dở; nhắc xin phép cài ui-ux-pro-max và Superpowers khi máy chưa có.",
+  "description": "Danh Method: chặn lệnh git phá huỷ việc dở; chặn sửa test khoá ngoài cửa sổ Test; nhắc bước tiếp theo theo trạng thái thật; nhắc xin phép cài ui-ux-pro-max và Superpowers.",
   "hooks": {
     "PreToolUse": [
       {
@@ -8,6 +8,16 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard-git.mjs\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard-spec-tests.mjs\"",
             "timeout": 10
           }
         ]
@@ -26,6 +36,22 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-superpowers.mjs\" --hook",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pipeline-nudge.mjs\" --hook --force",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pipeline-nudge.mjs\" --hook",
+            "timeout": 30
           }
         ]
       }
